@@ -1,0 +1,568 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Currency {
+  id                       Int                       @id @default(autoincrement())
+  status                   String
+  currencyCode             String                    @unique
+  currencyName             String
+  currencySymbol           String
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  exchangeRatesFrom        ExchangeRate[]            @relation("FromCurrency")
+  exchangeRatesTo          ExchangeRate[]            @relation("ToCurrency")
+  countries                Country[]
+  ports                    Ports[]
+  handlingAgentTariffCosts HandlingAgentTariffCost[]
+  landTransportTariffs     LandTransportTariff[]
+  depotAvgTariffs          DepotAvgTariff[]
+  depotCleaningTariffCosts DepotCleaningTariffCost[]
+}
+
+model Country {
+  id           Int           @id @default(autoincrement())
+  countryCode  String        @unique
+  countryName  String        @unique
+  regions      String
+  currencyId   Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  currency     Currency      @relation(fields: [currencyId], references: [id])
+  ports        Ports[]
+  addressBooks AddressBook[]
+}
+
+model Ports {
+  id                         Int                       @id @default(autoincrement())
+  status                     String
+  portType                   String
+  portCode                   String
+  portLongName               String
+  portName                   String
+  parentPortId               Int?
+  currencyId                 Int
+  currency                   Currency                  @relation(fields: [currencyId], references: [id])
+  countryId                  Int
+  country                    Country                   @relation(fields: [countryId], references: [id])
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+  businessPorts              BusinessPorts[]
+  leasingInfo                LeasingInfo[]
+  handlingAgentTariffCosts   HandlingAgentTariffCost[]
+  depotAvgTariffs            DepotAvgTariff[]
+  depotCleaningTariffCosts   DepotCleaningTariffCost[]
+  // Back relation to Quotation table
+  quotationsPolPort          Quotation[]               @relation("POL")
+  quotationsPodPort          Quotation[]               @relation("POD")
+  quotationsTranshipmentPort Quotation[]               @relation("TranshipmentPort")
+
+  // Back relation to Shipment table
+  shipmentsPolPort          Shipment[] @relation("ShipmentPOL")
+  shipmentsPodPort          Shipment[] @relation("ShipmentPOD")
+  shipmentsTranshipmentPort Shipment[] @relation("ShipmentTranshipment")
+
+  // ✅ Back relation to EmptyRepoJob table
+  emptyRepoJobsPolPort          EmptyRepoJob[] @relation("ShipmentPOL")
+  emptyRepoJobsPodPort          EmptyRepoJob[] @relation("ShipmentPOD")
+  emptyRepoJobsTranshipmentPort EmptyRepoJob[] @relation("ShipmentTranshipment")
+  movementHistory MovementHistory[]
+}
+
+model ExchangeRate {
+  id             String   @id @default(cuid())
+  fromCurrencyId Int
+  toCurrencyId   Int
+  exchangeRate   String
+  date           DateTime
+  variance       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  fromCurrency   Currency @relation("FromCurrency", fields: [fromCurrencyId], references: [id])
+  toCurrency     Currency @relation("ToCurrency", fields: [toCurrencyId], references: [id])
+}
+
+model AddressBook {
+  id           Int      @id @default(autoincrement())
+  status       String?
+  refId        String
+  businessType String
+  companyName  String
+  address      String
+  phone        String
+  email        String
+  website      String
+  creditTerms  String
+  creditLimit  String
+  remark       String
+  countryId    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  country Country @relation(fields: [countryId], references: [id])
+
+  leasingAsLeasor LeasingInfo[] @relation("LeasorRelation")
+  leasingAsDepot  LeasingInfo[] @relation("DepotRelation")
+
+  bankDetails              BankDetails[]
+  businessPorts            BusinessPorts[]
+  contacts                 Contacts[]
+  handlingAgentTariffCosts HandlingAgentTariffCost[]
+  landTransportTariffs     LandTransportTariff[]
+  depotAvgTariffs          DepotAvgTariff[]
+  depotCleaningTariffCosts DepotCleaningTariffCost[]
+
+   // 🔁 Back relations to EmptyRepoJob
+  exportHandlingJobs     EmptyRepoJob[] @relation("ShipmentExportHandling")
+  importHandlingJobs     EmptyRepoJob[] @relation("ShipmentImportHandling")
+  carrierJobs            EmptyRepoJob[] @relation("ShipmentCarrier")
+  emptyReturnDepotJobs   EmptyRepoJob[] @relation("ShipmentEmptyReturn")
+
+  // Back relations to Quotation table
+  quotationsCustomer                  Quotation[] @relation("Customer")
+  quotationsExportDepot               Quotation[] @relation("ExportDepot")
+  quotationsEmptyReturn               Quotation[] @relation("EmptyReturn")
+  quotationsExportHandlingAgent       Quotation[] @relation("QuotationExportHandling")
+  quotationsImportHandlingAgent       Quotation[] @relation("QuotationImportHandling")
+  quotationsTranshipmentHandlingAgent Quotation[] @relation("TranshipmentHandling")
+
+  shipmentsCustomer         Shipment[] @relation("ShipmentCustomer")
+  shipmentsConsignee        Shipment[] @relation("ShipmentConsignee")
+  shipmentsShipper          Shipment[] @relation("ShipmentShipper")
+  shipmentsExportHandling   Shipment[] @relation("ShipmentExportHandling")
+  shipmentsImportHandling   Shipment[] @relation("ShipmentImportHandling")
+  shipmentsCarrier          Shipment[] @relation("ShipmentCarrier")
+  shipmentsEmptyReturnDepot Shipment[] @relation("ShipmentEmptyReturn")
+
+  movementHistory MovementHistory[]
+}
+
+model BankDetails {
+  id            Int      @id @default(autoincrement())
+  bankName      String
+  accountNumber String
+  address       String
+  usci          String
+  branchName    String
+  branchCode    String
+  swiftCode     String
+  currency      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 👇 Foreign Key and relation
+  addressBookId Int
+  addressBook   AddressBook @relation(fields: [addressBookId], references: [id])
+}
+
+model BusinessPorts {
+  id            Int      @id @default(autoincrement())
+  portId        Int
+  addressBookId Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 👇 Relation to AddressBook
+  addressBook AddressBook @relation(fields: [addressBookId], references: [id])
+  // 👇 Relation to Port
+  port        Ports       @relation(fields: [portId], references: [id])
+}
+
+model Contacts {
+  id            Int      @id @default(autoincrement())
+  title         String
+  firstName     String
+  lastName      String
+  designation   String
+  department    String
+  email         String
+  mobile        String
+  landline      String
+  addressBookId Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 👇 Foreign Key and relation
+  addressBook AddressBook @relation(fields: [addressBookId], references: [id])
+}
+
+model Inventory {
+  id                       Int                        @id @default(autoincrement())
+  status                   String
+  containerNumber          String
+  containerCategory        String
+  containerType            String
+  containerSize            String
+  containerClass           String
+  containerCapacity        String
+  capacityUnit             String
+  manufacturer             String
+  buildYear                String
+  grossWeight              String
+  tareWeight               String
+  InitialSurveyDate        String
+  periodicTankCertificates PeriodicTankCertificates[]
+  leasingInfo              LeasingInfo[]
+  onHireReport             OnHireReport[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  movementHistory MovementHistory[]
+}
+
+model LeasingInfo {
+  id                       Int         @id @default(autoincrement())
+  ownershipType            String
+  leasingRefNo             String
+  leasoraddressbookId      Int
+  onHireDate               DateTime
+  offHireDate              DateTime? 
+  portId                   Int
+  onHireDepotaddressbookId Int
+  leaseRentPerDay          String
+  remarks                   String
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+  inventoryId              Int
+  inventory                Inventory   @relation(fields: [inventoryId], references: [id])
+  addressBook              AddressBook @relation("LeasorRelation", fields: [leasoraddressbookId], references: [id])
+  onHireDepotAddressBook   AddressBook @relation("DepotRelation", fields: [onHireDepotaddressbookId], references: [id])
+  port                     Ports       @relation(fields: [portId], references: [id])
+}
+
+model PeriodicTankCertificates {
+  id             Int       @id @default(autoincrement())
+  inspectionDate DateTime?
+  inspectionType String?
+  nextDueDate    DateTime?
+  certificate    String?
+  inventoryId    Int
+  inventory      Inventory @relation(fields: [inventoryId], references: [id])
+}
+
+model OnHireReport {
+  id             Int       @id @default(autoincrement())
+  reportDate     DateTime?
+  reportDocument String?
+  inventoryId    Int
+  inventory      Inventory @relation(fields: [inventoryId], references: [id])
+}
+
+model Products {
+  id                       Int                       @id @default(autoincrement())
+  status                   String
+  productId                String                    @unique
+  productName              String
+  tradeName                String
+  grade                    String
+  productType              String
+  derivative               String
+  cleanType                String
+  unCode                   String
+  packaging                String
+  shippingName             String
+  containerCategory        String
+  containerType            String
+  classType                String
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  productMSDS              ProductMSDS[]
+  depotCleaningTariffCosts DepotCleaningTariffCost[]
+  quotations               Quotation[]
+  // Back relation to Shipment table
+  shipments                Shipment[]
+}
+
+model ProductMSDS {
+  id              Int      @id @default(autoincrement())
+  msdcIssueDate   DateTime
+  msdsCertificate String
+  remark          String
+  productId       Int
+  product         Products @relation(fields: [productId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ContainerLeaseTariff {
+  id                Int      @id @default(autoincrement())
+  status            String
+  tariffCode        String
+  containerCategory String
+  containerType     String
+  containerClass    String
+  leaseRentPerDay   String
+  currencyName      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model HandlingAgentTariffCost {
+  id                     Int      @id @default(autoincrement())
+  status                 String
+  tariffCode             String
+  addressBookId          Int
+  portId                 Int
+  currencyId             Int
+  impCommission          String
+  expCommission          String
+  transhipmentCommission String
+  emptyRepoCommission    String
+  detentionCommission    String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  addressBook AddressBook @relation(fields: [addressBookId], references: [id])
+  port        Ports       @relation(fields: [portId], references: [id])
+  currency    Currency    @relation(fields: [currencyId], references: [id])
+}
+
+model LandTransportTariff {
+  id                      Int         @id @default(autoincrement())
+  landTransportTariffCode String
+  addressBookId           Int
+  transportType           String
+  from                    String
+  to                      String
+  distance                String
+  currencyId              Int
+  amount                  String
+  approvalStatus          String
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  addressBook             AddressBook @relation(fields: [addressBookId], references: [id])
+  currency                Currency    @relation(fields: [currencyId], references: [id])
+}
+
+model DepotAvgTariff {
+  id                   Int         @id @default(autoincrement())
+  status               String
+  tariffCode           String
+  addressBookId        Int
+  portId               Int
+  currencyId           Int
+  manlidPTFE           String
+  leakTest             String
+  loadOnLoadOff        String
+  cleaningSurvey       String
+  maintenanceAndRepair String
+  total                String
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  addressBook          AddressBook @relation(fields: [addressBookId], references: [id])
+  port                 Ports       @relation(fields: [portId], references: [id])
+  currency             Currency    @relation(fields: [currencyId], references: [id])
+}
+
+model DepotCleaningTariffCost {
+  id              Int         @id @default(autoincrement())
+  status          String
+  tariffCode      String
+  productId       Int
+  addressBookId   Int
+  portId          Int
+  currencyId      Int
+  cleaningCharges String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  addressBook     AddressBook @relation(fields: [addressBookId], references: [id])
+  port            Ports       @relation(fields: [portId], references: [id])
+  currency        Currency    @relation(fields: [currencyId], references: [id])
+  product         Products    @relation(fields: [productId], references: [id])
+}
+
+model Quotation {
+  id                                     Int      @id @default(autoincrement())
+  status                                 String
+  quotationRefNumber                     String @unique
+  effectiveDate                          DateTime
+  validTillDate                          DateTime
+  shippingTerm                           String
+  custAddressBookId                      Int
+  billingParty                           String
+  rateType                               String
+  billingType                            String
+  productId                              Int
+  polPortId                              Int
+  podPortId                              Int
+  polFreeDays                            String
+  podFreeDays                            String
+  polDetentionRate                       String
+  podDetentionRate                       String
+  expDepotAddressBookId                  Int
+  emptyReturnAddressBookId               Int?
+  expHandlingAgentAddressBookId          Int
+  impHandlingAgentAddressBookId          Int
+  transitDays                            String
+  transhipmentPortId                     Int?
+  transhipmentHandlingAgentAddressBookId Int?
+  slotRate                               String
+  depotAvgCost                           String
+  leasingCost                            String
+  depotCleaningCost                      String
+  terminalHandlingFee                    String
+  containerPreparationCost               String
+  expAgencyCommission                    String
+  impAgencyCommission                    String
+  expCollectionCharges                   String
+  impCollectionCharges                   String
+  totalCost                              String
+  sellingAmount                          String
+  totalRevenueAmount                     String
+  totalPLAmount                          String
+  plMargin                               String
+  createdAt                              DateTime @default(now())
+  updatedAt                              DateTime @updatedAt
+
+  // Relations
+  custAddressBook                      AddressBook  @relation("Customer", fields: [custAddressBookId], references: [id])
+  expDepotAddressBook                  AddressBook  @relation("ExportDepot", fields: [expDepotAddressBookId], references: [id])
+  emptyReturnAddressBook               AddressBook? @relation("EmptyReturn", fields: [emptyReturnAddressBookId], references: [id])
+   expHandlingAgentAddressBook AddressBook @relation("QuotationExportHandling", fields: [expHandlingAgentAddressBookId], references: [id])
+  impHandlingAgentAddressBook AddressBook @relation("QuotationImportHandling", fields: [impHandlingAgentAddressBookId], references: [id])
+  transhipmentHandlingAgentAddressBook AddressBook? @relation("TranshipmentHandling", fields: [transhipmentHandlingAgentAddressBookId], references: [id])
+
+  polPort          Ports  @relation("POL", fields: [polPortId], references: [id])
+  podPort          Ports  @relation("POD", fields: [podPortId], references: [id])
+  transhipmentPort Ports? @relation("TranshipmentPort", fields: [transhipmentPortId], references: [id])
+
+  product Products @relation(fields: [productId], references: [id])
+}
+
+model Shipment {
+  id                              Int       @id @default(autoincrement())
+  quotationRefNumber              String
+  date                            DateTime
+  jobNumber                       String
+  refNumber                       String
+  houseBL                         String
+  masterBL                        String
+  shippingTerm                    String
+  custAddressBookId               Int?
+  consigneeAddressBookId          Int?
+  shipperAddressBookId            Int?
+  expHandlingAgentAddressBookId   Int?
+  impHandlingAgentAddressBookId   Int?
+  carrierAddressBookId            Int?
+  emptyReturnDepotAddressBookId   Int?
+  productId                       Int?
+  polPortId                       Int?
+  podPortId                       Int?
+  transhipmentPortId              Int?
+  polFreeDays                     String
+  podFreeDays                     String
+  polDetentionRate                String
+  podDetentionRate                String
+  quantity                        String
+  vesselName                      String
+  gsDate                          DateTime
+  sob                             DateTime
+  etaTopod                        DateTime
+  estimateDate                    DateTime
+
+  // ✅ Foreign Key Relations
+  customerAddressBook             AddressBook? @relation("ShipmentCustomer", fields: [custAddressBookId], references: [id])
+  consigneeAddressBook            AddressBook? @relation("ShipmentConsignee", fields: [consigneeAddressBookId], references: [id])
+  shipperAddressBook              AddressBook? @relation("ShipmentShipper", fields: [shipperAddressBookId], references: [id])
+  expHandlingAgentAddressBook     AddressBook? @relation("ShipmentExportHandling", fields: [expHandlingAgentAddressBookId], references: [id])
+  impHandlingAgentAddressBook     AddressBook? @relation("ShipmentImportHandling", fields: [impHandlingAgentAddressBookId], references: [id])
+  carrierAddressBook              AddressBook? @relation("ShipmentCarrier", fields: [carrierAddressBookId], references: [id])
+  emptyReturnDepotAddressBook     AddressBook? @relation("ShipmentEmptyReturn", fields: [emptyReturnDepotAddressBookId], references: [id])
+
+  product                         Products?    @relation(fields: [productId], references: [id])
+  polPort                         Ports?       @relation("ShipmentPOL", fields: [polPortId], references: [id])
+  podPort                         Ports?       @relation("ShipmentPOD", fields: [podPortId], references: [id])
+  transhipmentPort                Ports?       @relation("ShipmentTranshipment", fields: [transhipmentPortId], references: [id])
+
+  movementHistory                 MovementHistory[]
+containers      ShipmentContainer[]
+}
+
+model ShipmentContainer {
+  id            Int       @id @default(autoincrement())
+  shipmentId    Int
+  containerNumber String
+  capacity      String
+  tare          String
+  inventoryId   Int?
+  portId        Int?
+  depotName     String?
+
+  shipment      Shipment  @relation(fields: [shipmentId], references: [id])
+}
+
+model EmptyRepoJob {
+   id                              Int       @id @default(autoincrement())
+  date                            DateTime
+  jobNumber                       String
+  houseBL                         String
+  shippingTerm                    String
+  expHandlingAgentAddressBookId   Int?
+  impHandlingAgentAddressBookId   Int?
+  carrierAddressBookId            Int?
+  emptyReturnDepotAddressBookId   Int?
+  polPortId                       Int?
+  podPortId                       Int?
+  transhipmentPortId              Int?
+  polFreeDays                     String
+  podFreeDays                     String
+  polDetentionRate                String
+  podDetentionRate                String
+  quantity                        String
+  vesselName                      String
+  gsDate                          DateTime
+  sob                             DateTime
+  etaTopod                        DateTime
+  estimateDate                    DateTime
+
+  // ✅ Foreign Key Relations
+  expHandlingAgentAddressBook     AddressBook? @relation("ShipmentExportHandling", fields: [expHandlingAgentAddressBookId], references: [id])
+  impHandlingAgentAddressBook     AddressBook? @relation("ShipmentImportHandling", fields: [impHandlingAgentAddressBookId], references: [id])
+  carrierAddressBook              AddressBook? @relation("ShipmentCarrier", fields: [carrierAddressBookId], references: [id])
+  emptyReturnDepotAddressBook     AddressBook? @relation("ShipmentEmptyReturn", fields: [emptyReturnDepotAddressBookId], references: [id])
+
+  polPort                         Ports?       @relation("ShipmentPOL", fields: [polPortId], references: [id])
+  podPort                         Ports?       @relation("ShipmentPOD", fields: [podPortId], references: [id])
+  transhipmentPort                Ports?       @relation("ShipmentTranshipment", fields: [transhipmentPortId], references: [id])
+
+  movementHistory                 MovementHistory[]
+containers      RepoShipmentContainer[]
+}
+
+model RepoShipmentContainer {
+  id            Int       @id @default(autoincrement())
+  shipmentId    Int
+  containerNumber String
+  capacity      String
+  tare          String
+  inventoryId   Int?
+  portId        Int?
+  depotName     String?
+
+  emptyRepoJob      EmptyRepoJob  @relation(fields: [shipmentId], references: [id])
+}
+
+
+model MovementHistory{
+    id                            Int      @id @default(autoincrement())
+    inventoryId                 Int 
+    portId                      Int
+    addressBookId          Int?
+    shipmentId    Int?
+    emptyRepoJobId  Int?
+    status String
+    date    DateTime    
+    remarks String?
+ // 👇 Add these relations
+  inventory      Inventory   @relation(fields: [inventoryId], references: [id])
+  port           Ports       @relation(fields: [portId], references: [id])
+  addressBook    AddressBook? @relation(fields: [addressBookId], references: [id])
+  shipment       Shipment?   @relation(fields: [shipmentId], references: [id])
+  emptyRepoJob      EmptyRepoJob?  @relation(fields: [emptyRepoJobId], references: [id])
+
+}
