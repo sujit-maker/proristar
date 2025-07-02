@@ -276,6 +276,7 @@ const ProductsInventoryPage = () => {
         <MovementHistoryModal
           containerNumber={selectedContainerNumber}
           onClose={() => setShowHistoryModal(false)}
+          
         />
       )}
     </div>

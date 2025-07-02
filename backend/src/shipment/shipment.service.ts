@@ -176,28 +176,27 @@ async create(data: CreateShipmentDto) {
         impHandlingAgentAddressBook: true,
         carrierAddressBook: true,
         emptyReturnDepotAddressBook: true,
+        containers: true,
       },
     });
   }
 
   async update(id: number, data: UpdateShipmentDto) {
-  // Extract containers from data
   const { containers, ...shipmentData } = data;
 
-  // Start a transaction to ensure atomicity
   return this.prisma.$transaction(async (tx) => {
-    // Step 1: Update main shipment record
+    // Step 1: Update shipment
     const updatedShipment = await tx.shipment.update({
       where: { id },
       data: shipmentData,
     });
 
-    // Step 2: Delete existing containers for this shipment
+    // Step 2: Delete old containers
     await tx.shipmentContainer.deleteMany({
       where: { shipmentId: id },
     });
 
-    // Step 3: Create new containers if provided
+    // Step 3: Re-create containers
     if (containers && containers.length > 0) {
       await tx.shipmentContainer.createMany({
         data: containers.map((container) => ({
@@ -205,11 +204,39 @@ async create(data: CreateShipmentDto) {
           shipmentId: id,
         })),
       });
+
+      // Step 4: Create movement history for each container
+      for (const container of containers) {
+        const inventory = await tx.inventory.findFirst({
+          where: { containerNumber: container.containerNumber },
+        });
+
+        if (inventory) {
+          const leasingInfo = await tx.leasingInfo.findFirst({
+            where: { inventoryId: inventory.id },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          if (leasingInfo) {
+            await tx.movementHistory.create({
+              data: {
+                inventoryId: inventory.id,
+                portId: leasingInfo.portId,
+                addressBookId: leasingInfo.onHireDepotaddressbookId,
+                shipmentId: id,
+                status: 'ALLOTTED',
+                date: new Date(),
+              },
+            });
+          }
+        }
+      }
     }
 
     return updatedShipment;
   });
 }
+
 
 
   remove(id: number) {

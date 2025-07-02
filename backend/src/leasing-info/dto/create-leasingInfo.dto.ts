@@ -1,6 +1,10 @@
-import { IsString, IsInt, IsDateString, IsOptional } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsDateString } from 'class-validator';
 
-export class CreateLeasingInfoDto {
+export class LeasingInfoDto {
+  @IsOptional()
+  @IsInt()
+  id?: number;
+
   @IsString()
   ownershipType: string;
 
@@ -16,20 +20,21 @@ export class CreateLeasingInfoDto {
   @IsInt()
   portId: number;
 
+   @IsInt()
+  inventoryId: number;
+
+   @IsOptional()
   @IsDateString()
-  onHireDate: string;
+  onHireDate?: string;
 
+  @IsOptional()
   @IsDateString()
-  @IsOptional()
-  offHireDate?: string;  // Add this field as optional
+  offHireDate?: string;
 
-  @IsInt()
-  @IsOptional()
-  inventoryId?: number;
 
-    @IsString()
+  @IsString()
   leaseRentPerDay: string;
 
-    @IsString()
+  @IsString()
   remarks: string;
 }

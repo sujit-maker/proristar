@@ -208,28 +208,33 @@ const AddQuotationModal = ({
     }
   };
 
-  const fetchExpDepotsByPort = async (portId: number) => {
-    try {
-      const res = await fetch("http://localhost:8000/addressbook");
-      const data = await res.json();
+const fetchExpDepotsByPort = async (portId: number) => {
+  try {
+    const res = await fetch("http://localhost:8000/addressbook");
+    const data = await res.json();
+    console.log("Fetched AddressBook:", data);
 
-      const filtered = data.filter((entry: any) => {
-        const hasDeportTerminal = entry.businessType
-          ?.toLowerCase()
-          .includes("deport terminal");
+    const filtered = data.filter((entry: any) => {
+      const businessType = (entry.businessType || "").toLowerCase();
 
-        const linkedToPort = entry.businessPorts?.some(
-          (bp: any) => bp.portId === portId
-        );
+      const isDepotOrCY =
+        businessType.includes("deport terminal") ||
+        businessType.includes("cy terminal");
 
-        return hasDeportTerminal && linkedToPort;
-      });
+      const linkedToPort =
+        Array.isArray(entry.businessPorts) &&
+        entry.businessPorts.some((bp: any) => bp.portId === portId);
 
-      setExpDepots(filtered);
-    } catch (err) {
-      console.error("Failed to fetch Exp. Depots:", err);
-    }
-  };
+      return isDepotOrCY && linkedToPort;
+    });
+
+    console.log("Filtered Exp Depots:", filtered);
+    setExpDepots(filtered);
+  } catch (err) {
+    console.error("Failed to fetch Exp. Depots:", err);
+  }
+};
+
   useEffect(() => {
     if (form.portOfLoadingId) {
       fetchExpDepotsByPort(form.portOfLoadingId);
@@ -239,27 +244,32 @@ const AddQuotationModal = ({
   }, [form.portOfLoadingId]);
 
   const fetchEmptyReturnDepotsByPort = async (portId: number) => {
-    try {
-      const res = await fetch("http://localhost:8000/addressbook");
-      const data = await res.json();
+  try {
+    const res = await fetch("http://localhost:8000/addressbook");
+    const data = await res.json();
+    console.log("Fetched address book data:", data); // ✅ check actual data
 
-      const filtered = data.filter((entry: any) => {
-        const hasDeportTerminal = entry.businessType
-          ?.toLowerCase()
-          .includes("deport terminal");
+    const filtered = data.filter((entry: any) => {
+      const businessType = (entry.businessType || "").toLowerCase();
+      const isDepotOrCY =
+        businessType.includes("deport terminal") || businessType.includes("cy terminal");
 
-        const linkedToPort = entry.businessPorts?.some(
-          (bp: any) => bp.portId === portId
-        );
+      const linkedToPort =
+        Array.isArray(entry.businessPorts) &&
+        entry.businessPorts.some((bp: any) => bp.portId === portId);
 
-        return hasDeportTerminal && linkedToPort;
-      });
+      return isDepotOrCY && linkedToPort;
+    });
 
-      setEmptyReturnDepots(filtered);
-    } catch (err) {
-      console.error("Failed to fetch empty return depots:", err);
-    }
-  };
+    console.log("Filtered Depots:", filtered); // ✅ check final result
+    setEmptyReturnDepots(filtered);
+  } catch (err) {
+    console.error("Failed to fetch empty return depots:", err);
+  }
+};
+
+
+
 
   useEffect(() => {
     if (form.portOfDischargeId) {
@@ -1275,59 +1285,60 @@ useEffect(() => {
 
             {/* Exp. Depot Name */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                Exp. Depot Name
-              </label>
-              <select
-                value={form.expDepotId || ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    expDepotId: Number(e.target.value),
-                    expDepotName:
-                      expDepots.find((d: any) => d.id === Number(e.target.value))
-                        ?.companyName || "",
-                  })
-                }
-                className="w-full p-2 bg-neutral-900 text-white rounded border border-neutral-800"
-              >
-                <option value="">First Select Port of Loading</option>
-                {expDepots.map((depot: any) => (
-                  <option key={depot.id} value={depot.id}>
-                    {depot.companyName}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <label className="block text-sm text-gray-400 mb-1">
+    Exp. Depot Name
+  </label>
+  <select
+    value={form.expDepotId || ""}
+    onChange={(e) => {
+      const selectedId = Number(e.target.value);
+      const selectedDepot = expDepots.find((d: any) => d.id === selectedId);
+      setForm({
+        ...form,
+        expDepotId: selectedId,
+        expDepotName: selectedDepot?.companyName || "",
+      });
+    }}
+    className="w-full p-2 bg-neutral-900 text-white rounded border border-neutral-800"
+  >
+    <option value="">First Select Port of Loading</option>
+    {expDepots.map((depot: any) => (
+      <option key={depot.id} value={depot.id}>
+        {depot.companyName} - {depot.businessType}
+      </option>
+    ))}
+  </select>
+</div>
+
 
             {/* Empty Return Depot */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">
-                Empty Return Depot
-              </label>
+           <div>
+  <label className="block text-sm text-gray-400 mb-1">
+    Empty Return Depot
+  </label>
 
-              <select
-                value={form.emptyReturnDepot || ""}
-                onChange={(e) => {
-                  const selectedId = Number(e.target.value);
-                  const selectedDepot = emptyReturnDepots.find((d) => d.id === selectedId);
-                  setForm({
-                    ...form,
-                    emptyReturnDepot: selectedId,
-                    emptyReturnDepotName: selectedDepot?.companyName || "",
-                  });
-                }}
-                className="w-full p-2 bg-neutral-900 text-white rounded border border-neutral-800"
+  <select
+    value={form.emptyReturnDepot || ""}
+    onChange={(e) => {
+      const selectedId = Number(e.target.value);
+      const selectedDepot = emptyReturnDepots.find((d) => d.id === selectedId);
+      setForm({
+        ...form,
+        emptyReturnDepot: selectedId,
+        emptyReturnDepotName: selectedDepot?.companyName || "",
+      });
+    }}
+    className="w-full p-2 bg-neutral-900 text-white rounded border border-neutral-800"
+  >
+    <option value="">First Select Port of Discharge</option>
+    {emptyReturnDepots.map((depot: any) => (
+      <option key={depot.id} value={depot.id}>
+        {depot.companyName} - {depot.businessType}
+      </option>
+    ))}
+  </select>
+</div>
 
-              >
-                <option value="">First Select Port of Discharge </option>
-                {emptyReturnDepots.map((depot: any) => (
-                  <option key={depot.id} value={depot.id}>
-                    {depot.companyName}
-                  </option>
-                ))}
-              </select>
-            </div>
 
 
             {/* Exp. H. Agent Name */}
@@ -1747,13 +1758,13 @@ useEffect(() => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700"
+              className="px-4 py-2 bg-neutral-800 cursor-pointer text-white rounded hover:bg-neutral-700"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+              className="px-4 py-2 bg-blue-600 cursor-pointer text-white rounded hover:bg-blue-500"
             >
               Submit
             </button>

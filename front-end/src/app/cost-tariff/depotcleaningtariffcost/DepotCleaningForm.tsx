@@ -56,15 +56,18 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
   }, []);
 
   // 🟡 Fetch depot terminals
-  useEffect(() => {
-    axios.get("http://localhost:8000/addressbook").then((res) => {
-      // Change from exact match to includes match
-      const filtered = res.data.filter(
-        (a: any) => a.businessType && a.businessType.includes("Deport Terminal")
-      );
-      setDepots(filtered);
-    });
-  }, []);
+ useEffect(() => {
+  axios.get("http://localhost:8000/addressbook").then((res) => {
+    const filtered = res.data.filter(
+      (a: any) =>
+        a.businessType &&
+        (a.businessType.includes("Deport Terminal") ||
+         a.businessType.includes("CY Terminal"))
+    );
+    setDepots(filtered);
+  });
+}, []);
+
 
   // 🟡 Fetch currencies
   useEffect(() => {
@@ -229,25 +232,26 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
           </div>
 
           {/* Depot Terminal */}
-          <div className="mb-4">
-            <Label htmlFor="depot" className="block text-white mb-1">Depot Terminal</Label>
-            <Select
-              value={form.addressBookId?.toString() || "0"}
-              onValueChange={(value) => setForm({ ...form, addressBookId: Number(value) })}
-            >
-              <SelectTrigger className="w-full bg-neutral-800 text-white border border-neutral-700">
-                <SelectValue placeholder="Select Depot Terminal" />
-              </SelectTrigger>
-              <SelectContent className="bg-neutral-800 text-white border border-neutral-700">
-                <SelectItem value="0">Select Depot Terminal</SelectItem>
-                {depots.map((d) => (
-                  <SelectItem key={d.id} value={d.id.toString()}>
-                    {d.companyName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+         <div className="mb-4">
+  <Label htmlFor="depot" className="block text-white mb-1">Depot Terminal</Label>
+  <Select
+    value={form.addressBookId?.toString() || "0"}
+    onValueChange={(value) => setForm({ ...form, addressBookId: Number(value) })}
+  >
+    <SelectTrigger className="w-full bg-neutral-800 text-white border border-neutral-700">
+      <SelectValue placeholder="Select Depot Terminal" />
+    </SelectTrigger>
+    <SelectContent className="bg-neutral-800 text-white border border-neutral-700">
+      <SelectItem value="0">Select Depot Terminal</SelectItem>
+      {depots.map((d) => (
+        <SelectItem key={d.id} value={d.id.toString()}>
+          {d.companyName} - {d.businessType}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
+
 
           {/* Service Port */}
           <div className="mb-4">

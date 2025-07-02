@@ -49,6 +49,9 @@ const AddShipmentModal = ({
   const [allMovements, setAllMovements] = useState<any[]>([]);
   const [selectedContainers, setSelectedContainers] = useState<any[]>([]);
   const [allInventories, setAllInventories] = useState<any[]>([]);
+  const [showShipperSuggestions, setShowShipperSuggestions] = useState(false);
+  const [showConsigneeSuggestions, setShowConsigneeSuggestions] = useState(false);
+
 
   useEffect(() => {
     const fetchMovements = async () => {
@@ -138,7 +141,7 @@ const AddShipmentModal = ({
         inventoryId: c.inventoryId,
         portId: c.portId,
         depotName: c.depotName,
-        
+
       })),
       containerNumber: "",
       capacity: "",
@@ -149,6 +152,8 @@ const AddShipmentModal = ({
     setSuggestions([]);
   };
 
+
+  
 
   const handleRemoveContainer = (index: number) => {
     const updated = [...selectedContainers];
@@ -165,6 +170,62 @@ const AddShipmentModal = ({
     depot: [],
     shippingTerm: []
   });
+
+ useEffect(() => {
+  if (form.id && form.containers?.length > 0) {
+    const mapped = form.containers.map((c: any) => ({
+      containerNumber: c.containerNumber || "",
+      capacity: c.capacity || "",
+      tare: c.tare || "",
+      inventoryId: c.inventoryId || null,
+      portId: c.portId || null,
+      depotName: c.depotName || "",
+      port: { portName: c.port?.portName || "" }, // Optional if your table uses c.port.portName
+    }));
+
+    setSelectedContainers(mapped);
+  }
+}, [form.id, form.containers]);
+useEffect(() => {
+    const fetchData = async () => {
+      if (!form.id) return;
+
+      try {
+        const res = await axios.get(`http://localhost:8000/shipment/${form.id}`);
+        const data = res.data;
+
+        console.log("🚀 Editing shipment:", data);
+        console.log("🧱 Raw containers from server:", data.containers);
+
+        setForm({
+          ...form,
+          ...data,
+          containers: data.containers || [],
+        });
+
+        if (data.containers && data.containers.length > 0) {
+          const formatted = data.containers.map((c: any) => ({
+            containerNumber: c.containerNumber,
+            capacity: c.capacity,
+            tare: c.tare,
+            inventoryId: c.inventoryId,
+            portId: c.portId,
+            depotName: c.depotName,
+            port: c.port || null,
+          }));
+          setSelectedContainers(formatted);
+        } else {
+          console.warn("No containers found in response");
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch shipment data", error);
+      }
+    };
+
+    fetchData();
+  }, [form.id]); // Runs only in edit mode
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,7 +254,7 @@ const AddShipmentModal = ({
       if (form.quotationRefNo) payload.quotationRefNumber = form.quotationRefNo;
       if (form.date) payload.date = new Date(form.date).toISOString();
       if (form.jobNumber) payload.jobNumber = form.jobNumber;
-      if (form.referenceNumber) payload.refNumber = form.referenceNumber;
+      if (form.refNumber) payload.refNumber = form.refNumber;
       if (form.masterBL) payload.masterBL = form.masterBL;
       if (form.shippingTerm) payload.shippingTerm = form.shippingTerm;
 
@@ -256,9 +317,6 @@ const AddShipmentModal = ({
       alert(`Failed to submit shipment: ${error.response?.data?.message || error.message}`);
     }
   };
-
-
-
 
 
   const handleImportData = async () => {
@@ -391,13 +449,18 @@ const AddShipmentModal = ({
         emptyReturnDepot: (data.emptyReturnAddressBook?.id || data.emptyReturnAddressBookId)?.toString() || "",
         enableTranshipmentPort: !!data.transhipmentPort,
         transhipmentPortName: data.transhipmentPort ? data.transhipmentPort.id.toString() : undefined,
+        containers: data.containers || [],
       });
+      
+
     } catch (err) {
       console.error("Failed to import data from quotation", err);
       alert("Quotation not found or fetch error");
     }
   };
 
+
+  
 
   useEffect(() => {
     const fetchNextJobNumber = async () => {
@@ -560,7 +623,7 @@ const AddShipmentModal = ({
                 </div>
                 <Button
                   type="button"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded mb-5"
+                  className="bg-blue-600 cursor-pointer hover:bg-blue-700 text-white rounded mb-5"
                   onClick={handleImportData}
                 >
                   Import Data
@@ -603,8 +666,8 @@ const AddShipmentModal = ({
                     </label>
                     <Input
                       type="text"
-                      value={form.referenceNumber || ""}
-                      onChange={(e) => setForm({ ...form, referenceNumber: e.target.value })}
+                      value={form.refNumber || ""}
+                      onChange={(e) => setForm({ ...form, refNumber: e.target.value })}
                       className="w-full p-2.5 bg-neutral-800 text-white rounded border border-neutral-700"
                     />
                   </div>
@@ -623,31 +686,31 @@ const AddShipmentModal = ({
                     <label className="block text-sm text-neutral-200 mb-1">
                       Shipment Type <span className="text-red-500">*</span>
                     </label>
-                     <select
-                  value={form.shippingTerm || ""}
-                  onChange={(e) => setForm({ ...form, shippingTerm: e.target.value })}
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Shipping Term</option>
-                  {selectOptions.shippingTerm.map((term) => (
-                    <option key={term.id} value={term.id}>{term.name}</option>
-                  ))}
-                </select>
+                    <select
+                      value={form.shippingTerm || ""}
+                      onChange={(e) => setForm({ ...form, shippingTerm: e.target.value })}
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Shipping Term</option>
+                      {selectOptions.shippingTerm.map((term) => (
+                        <option key={term.id} value={term.id}>{term.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-200 mb-1">
                       Customer Name <span className="text-red-500">*</span>
                     </label>
-                   <select
-                  value={form.customerName || ""}
-                  onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Customer</option>
-                  {selectOptions.customer.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                    <select
+                      value={form.customerName || ""}
+                      onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Customer</option>
+                      {selectOptions.customer.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-200 mb-1">
@@ -698,6 +761,7 @@ const AddShipmentModal = ({
 
 
                   {/* Consignee Name */}
+                  {/* Consignee Name */}
                   <div className="relative">
                     <label className="block text-sm text-neutral-200 mb-1">
                       Consignee Name
@@ -711,20 +775,18 @@ const AddShipmentModal = ({
                           consigneeName: e.target.value,
                           consigneeId: null,
                         }));
-                        setShowSuggestions(true);
+                        setShowConsigneeSuggestions(true);
                       }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                      onFocus={() => setShowConsigneeSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowConsigneeSuggestions(false), 150)}
                       placeholder="Start typing consignee name..."
                       className="w-full p-2.5 bg-neutral-800 text-white rounded border border-neutral-700"
                     />
-                    {showSuggestions && form.consigneeName && (
+                    {showConsigneeSuggestions && form.consigneeName && (
                       <ul className="absolute z-10 w-full bg-neutral-800 border border-neutral-700 rounded mt-1 max-h-40 overflow-y-auto">
                         {consigneeSuggestions
                           .filter((c) =>
-                            c.companyName
-                              .toLowerCase()
-                              .includes(form.consigneeName.toLowerCase())
+                            c.companyName.toLowerCase().includes(form.consigneeName.toLowerCase())
                           )
                           .map((company) => (
                             <li
@@ -735,7 +797,7 @@ const AddShipmentModal = ({
                                   consigneeName: company.companyName,
                                   consigneeId: company.id,
                                 }));
-                                setShowSuggestions(false);
+                                setShowConsigneeSuggestions(false);
                               }}
                               className="px-3 py-1 hover:bg-neutral-700 cursor-pointer text-sm text-white"
                             >
@@ -743,17 +805,14 @@ const AddShipmentModal = ({
                             </li>
                           ))}
                         {consigneeSuggestions.filter((c) =>
-                          c.companyName
-                            .toLowerCase()
-                            .includes(form.consigneeName?.toLowerCase())
+                          c.companyName.toLowerCase().includes(form.consigneeName.toLowerCase())
                         ).length === 0 && (
-                            <li className="px-3 py-1 text-neutral-400 text-sm">
-                              No match found
-                            </li>
+                            <li className="px-3 py-1 text-neutral-400 text-sm">No match found</li>
                           )}
                       </ul>
                     )}
                   </div>
+
                   {/* Shipper Name */}
                   <div className="relative">
                     <label className="block text-sm text-neutral-200 mb-1">
@@ -768,20 +827,18 @@ const AddShipmentModal = ({
                           shipperName: e.target.value,
                           shipperId: null,
                         }));
-                        setShowSuggestions(true);
+                        setShowShipperSuggestions(true);
                       }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                      onFocus={() => setShowShipperSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowShipperSuggestions(false), 150)}
                       placeholder="Start typing shipper name..."
                       className="w-full p-2.5 bg-neutral-800 text-white rounded border border-neutral-700"
                     />
-                    {showSuggestions && form.shipperName && (
+                    {showShipperSuggestions && form.shipperName && (
                       <ul className="absolute z-10 w-full bg-neutral-800 border border-neutral-700 rounded mt-1 max-h-40 overflow-y-auto">
                         {shipperSuggestions
                           .filter((c) =>
-                            c.companyName
-                              .toLowerCase()
-                              .includes(form.shipperName.toLowerCase())
+                            c.companyName.toLowerCase().includes(form.shipperName.toLowerCase())
                           )
                           .map((company) => (
                             <li
@@ -792,7 +849,7 @@ const AddShipmentModal = ({
                                   shipperName: company.companyName,
                                   shipperId: company.id,
                                 }));
-                                setShowSuggestions(false);
+                                setShowShipperSuggestions(false);
                               }}
                               className="px-3 py-1 hover:bg-neutral-700 cursor-pointer text-sm text-white"
                             >
@@ -800,17 +857,14 @@ const AddShipmentModal = ({
                             </li>
                           ))}
                         {shipperSuggestions.filter((c) =>
-                          c.companyName
-                            .toLowerCase()
-                            .includes(form.shipperName?.toLowerCase())
+                          c.companyName.toLowerCase().includes(form.shipperName.toLowerCase())
                         ).length === 0 && (
-                            <li className="px-3 py-1 text-neutral-400 text-sm">
-                              No match found
-                            </li>
+                            <li className="px-3 py-1 text-neutral-400 text-sm">No match found</li>
                           )}
                       </ul>
                     )}
                   </div>
+
                 </div>
               </div>
             </div>
@@ -826,31 +880,31 @@ const AddShipmentModal = ({
                     <label className="block text-sm text-neutral-200 mb-1">
                       Port of Loading <span className="text-red-500">*</span>
                     </label>
-                     <select
-                  value={form.portOfLoading || ""}
-                  onChange={(e) => setForm({ ...form, portOfLoading: e.target.value })}
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Port</option>
-                  {selectOptions.port.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                    <select
+                      value={form.portOfLoading || ""}
+                      onChange={(e) => setForm({ ...form, portOfLoading: e.target.value })}
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Port</option>
+                      {selectOptions.port.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-200 mb-1">
                       Port of Discharge <span className="text-red-500">*</span>
                     </label>
                     <select
-                  value={form.portOfDischarge || ""}
-                  onChange={(e) => setForm({ ...form, portOfDischarge: e.target.value })}
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Port</option>
-                  {selectOptions.port.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                      value={form.portOfDischarge || ""}
+                      onChange={(e) => setForm({ ...form, portOfDischarge: e.target.value })}
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Port</option>
+                      {selectOptions.port.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Free Days & Detention Rate Row */}
@@ -961,34 +1015,34 @@ const AddShipmentModal = ({
                       EXP Handling Agent <span className="text-red-500">*</span>
                     </label>
                     <select
-                  value={form.expHandlingAgent || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, expHandlingAgent: e.target.value })
-                  }
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Agent</option>
-                  {selectOptions.agent.map((a) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
+                      value={form.expHandlingAgent || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, expHandlingAgent: e.target.value })
+                      }
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Agent</option>
+                      {selectOptions.agent.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-200 mb-1">
                       IMP Handling Agent <span className="text-red-500">*</span>
                     </label>
-                     <select
-                  value={form.impHandlingAgent || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, impHandlingAgent: e.target.value })
-                  }
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Agent</option>
-                  {selectOptions.agent.map((a) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
+                    <select
+                      value={form.impHandlingAgent || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, impHandlingAgent: e.target.value })
+                      }
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Agent</option>
+                      {selectOptions.agent.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -1252,18 +1306,18 @@ const AddShipmentModal = ({
                     <label className="block text-sm text-neutral-200 mb-1">
                       Empty Return Depot <span className="text-red-500">*</span>
                     </label>
-                  <select
-                  value={form.emptyReturnDepot || ""}
-                  onChange={(e) =>
-                    setForm({ ...form, emptyReturnDepot: e.target.value })
-                  }
-                  className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
-                >
-                  <option value="">Select Return Depot</option>
-                  {selectOptions.depot.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
+                    <select
+                      value={form.emptyReturnDepot || ""}
+                      onChange={(e) =>
+                        setForm({ ...form, emptyReturnDepot: e.target.value })
+                      }
+                      className="w-full p-2 bg-gray-900 text-white rounded border border-gray-700"
+                    >
+                      <option value="">Select Return Depot</option>
+                      {selectOptions.depot.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm text-neutral-200 mb-1">

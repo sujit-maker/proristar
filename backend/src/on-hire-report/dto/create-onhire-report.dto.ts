@@ -1,14 +1,19 @@
-import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsDateString, IsString, IsInt } from 'class-validator';
 
-export class CreateOnHireReportDto {
+export class OnHireReportDto {
+  @IsOptional()
+  @IsInt()
+  id?: number;
+
   @IsOptional()
   @IsDateString()
-  reportDate?: Date;
+  reportDate?: string;
 
   @IsOptional()
   @IsString()
   reportDocument?: string;
 
-  @IsInt()
-  inventoryId: number;
+   @IsInt()
+  inventoryId: number; 
+
 }

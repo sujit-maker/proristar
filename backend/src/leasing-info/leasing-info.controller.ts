@@ -1,8 +1,8 @@
 // src/leasing-info/leasing-info.controller.ts
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { LeasingInfoService } from './leasing-info.service';
-import { CreateLeasingInfoDto } from './dto/create-leasingInfo.dto';
 import { UpdateLeasingInfoDto } from './dto/update-leasingInfo.dto';
+import { LeasingInfoDto } from './dto/create-leasingInfo.dto';
 
 
 @Controller('leasinginfo')
@@ -10,7 +10,7 @@ export class LeasingInfoController {
   constructor(private readonly service: LeasingInfoService) {}
 
   @Post()
-  async create(@Body() data: CreateLeasingInfoDto) {
+  async create(@Body() data: LeasingInfoDto) {
   return this.service.create(data);
   }
 

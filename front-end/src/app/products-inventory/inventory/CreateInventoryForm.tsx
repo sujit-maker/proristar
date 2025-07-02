@@ -28,7 +28,7 @@ interface Report {
   id?: number;
   reportDate: string;
   reportDocument: File | null;
-  reportDocumentName?: string; // Add this to store the existing file name
+  reportDocumentName?: string;
   isNew?: boolean;
   isModified?: boolean;
 }
@@ -75,10 +75,10 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
   const [formData, setFormData] = useState({
     status: "Active",
     containerNumber: "",
-    containerCategory: "Tank", // Default to Tank as shown in the image
-    containerType: "ISO Tank", // Default to ISO Tank
-    containerSize: "20TK", // Default to 201K as shown in the image
-    containerClass: "T11", // Default to T11
+    containerCategory: "Tank",
+    containerType: "ISO Tank",
+    containerSize: "20TK",
+    containerClass: "T11",
     containerCapacity: "MTN",
     capacityUnit: "",
     manufacturer: "",
@@ -88,7 +88,12 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
     initialSurveyDate: "",
     onHireDepotaddressbookId: "",
     onHireLocation: "",
+    onHireDate: "",
+    offHireDate: "",
     ownership: "",
+    leasingRefNo: "",
+    leaseRentPerDay: "",
+    remarks: "",
   });
 
   const [leasoraddressbookIds, setLeasoraddressbookIds] = useState<Leasor[]>([]); // Changed from leasoraddressbookIds
@@ -108,33 +113,6 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
   const [reports, setReports] = useState<Report[]>([]);
   const [leasingRecords, setLeasingRecords] = useState<LeasingRecord[]>([]);
 
-  // Temp state for adding certificate/report
-  const [certificateInput, setCertificateInput] = useState<Certificate>({
-    inspectionDate: "",
-    inspectionType: "Periodic 2.5Yr",
-    nextDueDate: "",
-    certificateFile: null,
-  });
-  const [reportInput, setReportInput] = useState<Report>({
-    reportDate: "",
-    reportDocument: null,
-  });
-  const [newLeasingRecord, setNewLeasingRecord] = useState<LeasingRecord>({
-    leasingRef: "",
-    leasorId: "", // Changed from lesorId to leasorId
-    leasoraddressbookId: "", // Already correct
-    leasorName: "",
-    depotId: "",
-    portId: "",
-    onHireDate: "",
-    onHireLocation: "",
-    onHireDepotaddressbookId: "",
-    onHireDepotName: "",
-    offHireDate: "",
-    leaseRentPerDay: "",
-    remarks: "",
-  });
-
   // Store edit data temporarily until all reference data is loaded
   const [tempEditData, setTempEditData] = useState<any>(null);
   const [dataLoadingComplete, setDataLoadingComplete] = useState({
@@ -145,80 +123,60 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
 
   useEffect(() => {
     if (editData) {
-      console.log("Storing edit data for later processing:", editData);
       setTempEditData(editData);
     }
   }, [editData]);
 
-  // Process edit data only after all reference data is loaded
   useEffect(() => {
     if (tempEditData && dataLoadingComplete.ports && dataLoadingComplete.leasors && dataLoadingComplete.depots) {
-      console.log("==================== PROCESSING EDIT DATA ====================");
-      console.log("All reference data loaded, now processing edit data:", tempEditData);
-      console.log("Available ports:", allPorts);
-      console.log("Available leasors:", leasoraddressbookIds);
-      console.log("Available depot terminals:", allDepotTerminals);
-      
-      // Check if there's leasingInfo to determine ownership type
+
       let ownershipType = "";
       if (tempEditData.leasingInfo && tempEditData.leasingInfo.length > 0) {
         // Use the ownershipType from the first leasing record
         ownershipType = tempEditData.leasingInfo[0].ownershipType || "";
-        console.log("Detected ownership type from leasing info:", ownershipType);
-        console.log("Full leasing info data:", tempEditData.leasingInfo);
       }
-      
+
       // Determine the correct ownership value - map "Leased" to "Lease" for display
       let displayOwnership = ownershipType || tempEditData.ownershipType || "";
       if (displayOwnership === "Leased") {
         displayOwnership = "Lease"; // Map "Leased" from backend to "Lease" for frontend dropdown
       }
-      
+
       setFormData(prev => ({
         ...prev,
         ...tempEditData,
-        initialSurveyDate: tempEditData.InitialSurveyDate 
-          ? new Date(tempEditData.InitialSurveyDate).toISOString().split('T')[0] 
+        initialSurveyDate: tempEditData.InitialSurveyDate
+          ? new Date(tempEditData.InitialSurveyDate).toISOString().split('T')[0]
           : "",
         // Set ownership with correct mapping
         ownership: displayOwnership
       }));
-      
-      console.log("Updated form data with ownership:", displayOwnership);
-      
+
       // Update the conditional fields visibility based on the ownership
       setShowConditionalFields(displayOwnership === "Own");
-      
+
       // Handle ALL containers that have leasing info (both "Own" and "Lease") - load port and depot data
       if (tempEditData.leasingInfo && tempEditData.leasingInfo.length > 0) {
         const record = tempEditData.leasingInfo[0];
-        console.log("=== Processing container with leasing info ===");
-        console.log("Record data:", record);
-        console.log("Port data from record:", record.port);
-        console.log("Depot ID from record:", record.onHireDepotaddressbookId);
-        
+
         // For "Own" containers, we need to populate the conditional fields
         if (displayOwnership === "Own") {
           // Set the on-hire location (port name) and depot data in the main form
           const portName = record.port?.portName || "";
           const depotId = record.onHireDepotaddressbookId || "";
-          
-          console.log("Setting Own container - port name to:", portName);
-          console.log("Setting Own container - depot ID to:", depotId);
-          
+
           setFormData(prev => ({
             ...prev,
             onHireLocation: portName,
             onHireDepotaddressbookId: depotId
           }));
-          
+
           // Set the selected hire depot ID for the depot dropdown
           if (record.onHireDepotaddressbookId) {
             const numericDepotId = Number(record.onHireDepotaddressbookId);
             setSelectedHireDepotId(numericDepotId);
-            console.log("Setting selected hire depot ID:", numericDepotId);
           }
-          
+
           // If we have a port ID, filter depots based on that port
           if (record.portId) {
             console.log("Filtering depots for port ID:", record.portId);
@@ -229,17 +187,13 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
           }
         }
       }
-      
+
       // Handle leasing records for both "Own" and "Lease" types
       if (tempEditData.leasingInfo && tempEditData.leasingInfo.length > 0) {
-        console.log("=== Processing leasing records ===");
-        
+
         const existingLeasingRecords = tempEditData.leasingInfo.map((record: any) => {
-          console.log("Processing leasing record:", record);
-          console.log("  - addressBook data:", record.addressBook);
-          console.log("  - port data:", record.port);
-          console.log("  - onHireDepotAddressBook data:", record.onHireDepotAddressBook);
-          
+
+
           return {
             id: record.id,
             leasingRef: record.leasingRefNo || "",
@@ -259,10 +213,10 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
             isModified: false
           };
         });
-        
+
         console.log("Processed leasing records:", existingLeasingRecords);
         setLeasingRecords(existingLeasingRecords);
-        
+
         // Filter depots for each record that has a port
         existingLeasingRecords.forEach((record: any, index: number) => {
           if (record.portId) {
@@ -303,9 +257,7 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
         }));
         setReports(reportData);
       }
-      
-      console.log("=== Edit data processing complete ===");
-      // Clear temp data after processing
+
       setTempEditData(null);
     }
   }, [tempEditData, dataLoadingComplete]);
@@ -326,70 +278,59 @@ const AddInventoryForm: React.FC<InventoryFormProps> = ({
     fetchPorts();
   }, []);
 
-// Store all depot terminals without filtering
-const [allDepotTerminals, setAllDepotTerminals] = useState<{ 
-  id: number; 
-  companyName: string; 
-  address: string;
-  businessPorts: any[];
-}[]>([]);
+  // Store all depot terminals without filtering
+  const [allDepotTerminals, setAllDepotTerminals] = useState<{
+    id: number;
+    companyName: string;
+    address: string;
+    businessPorts: any[];
+  }[]>([]);
 
-// Depot options for dropdowns
-const [hireDepotOptions, setHireDepotOptions] = useState<{
-  label: string;
-  value: number;
-  companyName?: string;
-}[]>([]);
+  // Depot options for dropdowns
+  const [hireDepotOptions, setHireDepotOptions] = useState<{
+    label: string;
+    value: number;
+    companyName?: string;
+  }[]>([]);
 
-useEffect(() => {
-  const fetchHireDepots = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/addressbook");
-      const data = await response.json();
-      
-      console.log("Fetched addressbook data:", data);
-      
-      // Store all depot terminals with their businessPorts info
-      // Note: Searching for "Deport Terminal" as seen in the screenshot
-      const depotTerminals = data.filter((entry: any) =>
-        entry.businessType && 
-        (entry.businessType.toLowerCase().includes("deport terminal") ||
-         entry.businessType.toLowerCase().includes("depot terminal") ||
-         entry.businessType.toLowerCase().includes("depot-terminal"))
-      );
-      
-      console.log("Found depot terminals:", depotTerminals);
-      setAllDepotTerminals(depotTerminals);
-      setDataLoadingComplete(prev => ({ ...prev, depots: true }));
-      
-      // Initially all depots are shown until a port is selected
-      const depots = depotTerminals.map((entry: any) => ({
-        label: `${entry.companyName} - ${entry.address || 'No address'}`,
-        value: entry.id,
-      }));
-      
-      setHireDepotOptions(depots);
-    } catch (error) {
-      console.error("Failed to fetch hire depots:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchHireDepots = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/addressbook");
+        const data = await response.json();
+        const depotTerminals = data.filter((entry: any) =>
+          entry.businessType &&
+          (entry.businessType.toLowerCase().includes("deport terminal") ||
+            entry.businessType.toLowerCase().includes("depot terminal") ||
+            entry.businessType.toLowerCase().includes("depot-terminal"))
+        );
 
-  fetchHireDepots();
-}, []);
+        setAllDepotTerminals(depotTerminals);
+        setDataLoadingComplete(prev => ({ ...prev, depots: true }));
+
+        // Initially all depots are shown until a port is selected
+        const depots = depotTerminals.map((entry: any) => ({
+          label: `${entry.companyName} - ${entry.address || 'No address'}`,
+          value: entry.id,
+        }));
+
+        setHireDepotOptions(depots);
+      } catch (error) {
+        console.error("Failed to fetch hire depots:", error);
+      }
+    };
+
+    fetchHireDepots();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch("http://localhost:8000/addressbook");
         const data = await res.json();
-
-        // Filter for companies that have "Leasor" in their businessType string
-        // This will include companies with multiple business types
         const leasors = data.filter(
           (entry: any) => entry.businessType && entry.businessType.includes("Leasor")
         );
-
-        console.log("Found leasors:", leasors);
         setLeasoraddressbookIds(leasors);
         setDataLoadingComplete(prev => ({ ...prev, leasors: true }));
       } catch (error) {
@@ -402,30 +343,21 @@ useEffect(() => {
 
   // Function to filter depots by port ID
   const filterDepotsByPort = (portId: number) => {
-    console.log(`Filtering depots for port ID: ${portId}`);
-    console.log("All depot terminals:", allDepotTerminals);
-    console.log("Looking through businessPorts:", allDepotTerminals.map(d => d.businessPorts));
-    
+
     // Filter depot terminals that are associated with this port
     const filteredDepots = allDepotTerminals.filter(depot => {
       // Check if depot has businessPorts and if any of them match the selected portId
       if (!depot.businessPorts || !Array.isArray(depot.businessPorts)) {
-        console.log(`No businessPorts for depot ${depot.companyName} or not an array`);
         return false;
       }
-      
+
       const hasMatchingPort = depot.businessPorts.some(bp => {
-        // Handle both cases: where bp has portId directly or nested in port object
         const bpPortId = bp.portId || (bp.port && bp.port.id);
-        console.log(`Checking port ID ${bpPortId} against ${portId} for ${depot.companyName}`);
         return Number(bpPortId) === Number(portId);
       });
-      
-      console.log(`Depot ${depot.companyName} has matching port: ${hasMatchingPort}`);
+
       return hasMatchingPort;
     });
-
-    console.log("Filtered depots:", filteredDepots);
 
     // Update the depot options in the dropdown
     const options = filteredDepots.map(depot => ({
@@ -435,17 +367,14 @@ useEffect(() => {
     }));
 
     setHireDepotOptions(options);
-    
-    // Also update filteredDepotsByPort for backward compatibility
-    // Convert to Leasor type by adding the businessType property
+
     setFilteredDepotsByPort(filteredDepots.map(depot => ({
       ...depot,
       businessType: "Deport Terminal" // Add the required businessType property
     })));
-    
+
     // If there are no depots for this port, show a message
     if (options.length === 0) {
-      console.log(`No depot terminals found for port ID: ${portId}`);
     }
   };
 
@@ -463,41 +392,6 @@ useEffect(() => {
     fetchPorts();
   }, []);
 
-  // Update handleSubmitCertificates to always create new records, similar to reports
-  const handleSubmitCertificates = async (id = inventoryId) => {
-    try {
-      // Only process certificates that have files (similar to reports)
-      const certificatesToSubmit = certificates.filter(cert => cert.certificateFile);
-      
-      if (certificatesToSubmit.length === 0) {
-        console.log("No certificates with files to submit");
-        return;
-      }
-
-      // Always create new records when files are present (like reports)
-      for (const cert of certificatesToSubmit) {
-        const formData = new FormData();
-        formData.append("inspectionDate", cert.inspectionDate || "");
-        formData.append("inspectionType", cert.inspectionType || "");
-        formData.append("nextDueDate", cert.nextDueDate || "");
-        formData.append("certificate", cert.certificateFile!);
-        formData.append("inventoryId", id.toString());
-
-        // Always create new certificate records
-        const response = await fetch("http://localhost:8000/tankcertificate", {
-          method: "POST",
-          body: formData,
-        });
-        
-        console.log("Created new certificate record:", await response.json());
-      }
-
-      console.log("Certificates submitted successfully");
-    } catch (error) {
-      console.error("❌ Error submitting certificates:", error);
-      throw error;
-    }
-  };
 
   // Handle form field changes
   const handleChange = (
@@ -511,24 +405,22 @@ useEffect(() => {
 
     if (name === "ownership") {
       setShowConditionalFields(value === "Own");
-      
+
       // If changing to "Own" in edit mode and we have leasing data, populate the fields
       if (value === "Own" && isEditMode && editData && editData.leasingInfo && editData.leasingInfo.length > 0) {
         const ownRecord = editData.leasingInfo[0];
-        console.log("=== Manual change to Own - populating fields ===");
-        console.log("Own record data:", ownRecord);
-        
+
         if (ownRecord.port?.portName) {
           setFormData(prev => ({
             ...prev,
             onHireLocation: ownRecord.port.portName
           }));
         }
-        
+
         if (ownRecord.onHireDepotaddressbookId) {
           const numericDepotId = Number(ownRecord.onHireDepotaddressbookId);
           setSelectedHireDepotId(numericDepotId);
-          
+
           // Filter depots for this port
           if (ownRecord.portId) {
             setTimeout(() => {
@@ -537,7 +429,7 @@ useEffect(() => {
           }
         }
       }
-      
+
       // If changing to "Lease" in edit mode, ensure leasing records are visible
       if (value === "Lease" || value === "Leased") {
         // If we don't have any leasing records yet, add a default one
@@ -562,7 +454,7 @@ useEffect(() => {
           setLeasingRecords([newRecord]);
         }
       }
-      
+
       // If changing away from "Own", clear the conditional fields
       if (value !== "Own") {
         setFormData(prev => ({
@@ -578,15 +470,13 @@ useEffect(() => {
     if (name === "onHireLocation" && value) {
       // Find the port object based on the port name
       const selectedPort = allPorts.find((port) => port.portName === value);
-      console.log("Selected port:", selectedPort);
-      console.log("All ports:", allPorts);
-      
+
+
       if (selectedPort) {
         console.log(`Selected port: ${selectedPort.portName} (ID: ${selectedPort.id})`);
         // Filter depots associated with this port
         filterDepotsByPort(selectedPort.id);
       } else {
-        console.log("No port found with name:", value);
         // If no port selected or invalid port, reset depot options
         const allDepots = allDepotTerminals.map((entry) => ({
           label: `${entry.companyName} - ${entry.address || 'No address'}`,
@@ -594,7 +484,7 @@ useEffect(() => {
         }));
         setHireDepotOptions(allDepots);
       }
-      
+
       // Reset the selectedHireDepotId when port changes
       setSelectedHireDepotId("");
     }
@@ -614,7 +504,6 @@ useEffect(() => {
     setReports((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // Dummy addressBookList and portsList for demonstration; replace with real data or fetch from API
 
   // Add leasing record
   const handleAddLeasingRecord = () => {
@@ -646,91 +535,26 @@ useEffect(() => {
     setLeasingRecords(leasingRecords.filter((_, i) => i !== index));
   };
 
-  const handleSubmitReports = async (id = inventoryId) => {
-    try {
-      // Filter only reports that have a file to upload
-      const reportsToSubmit = reports.filter(report => report.reportDocument);
-      
-      if (reportsToSubmit.length === 0) {
-        console.log("No reports to submit");
-        return;
-      }
-      
-      for (const report of reportsToSubmit) {
-        // Skip if no document
-        if (!report.reportDocument) continue;
-        
-        // Create FormData for file upload
-        const formData = new FormData();
-        
-        // Format date properly
-        const reportDate = report.reportDate 
-          ? new Date(report.reportDate).toISOString() 
-          : new Date().toISOString();
-        
-        // Add the file first to ensure it's at the beginning of FormData
-        formData.append("file", report.reportDocument);
-        formData.append("reportDate", reportDate);
-        formData.append("inventoryId", id.toString());
 
-        try {
-          // Upload file
-          const uploadResponse = await axios.post(
-            "http://localhost:8000/onhirereport/uploads/reports", 
-            formData,
-            {
-              headers: {
-                'Content-Type': 'multipart/form-data'
-              }
-            }
-          );
-          
-          if (!uploadResponse.data || !uploadResponse.data.filename) {
-            console.error("File upload failed - server response:", uploadResponse.data);
-            continue;
-          }
-          
-          // Create report record
-          const reportData = {
-            reportDate: reportDate,
-            reportDocument: uploadResponse.data.filename,
-            inventoryId: parseInt(id.toString())
-          };
-          
-          await axios.post(
-            "http://localhost:8000/onhirereport", 
-            reportData
-          );
-        } catch (err: any) {
-          console.error("Error processing report:", err);
-        }
-      }
-    } catch (error) {
-      console.error("Error submitting reports:", error);
-      throw error;
-    }
-  };
-
-  // Add this new function
 
   // Add a new function to submit leasing records
   const handleSubmitLeasingRecords = async (inventoryId: number) => {
     try {
       console.log("Submitting leasing records for inventory ID:", inventoryId);
-      
+
       for (const record of leasingRecords) {
         // Skip if missing required values
         if (!record.leasingRef || (!record.leasoraddressbookId && !record.leasorName)) {
           console.log("Skipping incomplete leasing record - missing leasingRef or leasor:", record);
           continue;
         }
-        
+
         // If record has an ID and isn't modified, skip it
         if (record.id && !record.isModified && !record.isNew) {
           console.log("Skipping unmodified existing record:", record.id);
           continue;
         }
-        
+
         // Get the leasor ID - use the stored ID or look it up by name
         let leasorId = record.leasoraddressbookId; // This should already be the ID, not the name
         if (!leasorId && record.leasorName) {
@@ -739,7 +563,7 @@ useEffect(() => {
           );
           leasorId = selectedLeasor?.id?.toString() ?? "";
         }
-        
+
         // Get the port ID directly if available, otherwise look it up
         let portId = record.portId;
         if (!portId && record.onHireLocation) {
@@ -748,7 +572,7 @@ useEffect(() => {
           );
           portId = selectedPort?.id?.toString() ?? "";
         }
-        
+
         // Get the depot ID - use the stored ID or look it up by name
         let depotId = record.onHireDepotaddressbookId; // This should already be the ID, not the name
         if (!depotId && record.onHireDepotName) {
@@ -757,7 +581,7 @@ useEffect(() => {
           );
           depotId = selectedDepot?.value?.toString() ?? "";
         }
-        
+
         if (!leasorId || !portId || !depotId) {
           console.error("Missing reference IDs for leasing record:", {
             leasorId,
@@ -773,12 +597,12 @@ useEffect(() => {
           });
           continue;
         }
-        
+
         // Convert IDs to numbers to ensure consistent typing
         const numericLeasorId = typeof leasorId === 'string' ? parseInt(leasorId) : leasorId;
         const numericPortId = typeof portId === 'string' ? parseInt(portId) : portId;
         const numericDepotId = typeof depotId === 'string' ? parseInt(depotId) : depotId;
-        
+
         // Create the payload with correct ID references
         const leasingData = {
           ownershipType: record.leasingRef.startsWith("OWN-") ? "Own" : "Leased", // Use "Leased" for backend consistency
@@ -792,27 +616,23 @@ useEffect(() => {
           remarks: record.remarks || "",
           inventoryId: inventoryId
         };
-        
-        console.log("Sending leasing data to backend:", leasingData);
-        
+
         if (record.id && !record.isNew) {
           // Update existing record
           const response = await axios.patch(
-            `http://localhost:8000/leasinginfo/${record.id}`, 
+            `http://localhost:8000/leasinginfo/${record.id}`,
             leasingData
           );
           console.log("Leasing record updated:", response.data);
         } else {
           // Create new record
           const response = await axios.post(
-            "http://localhost:8000/leasinginfo", 
+            "http://localhost:8000/leasinginfo",
             leasingData
           );
-          console.log("Leasing record created:", response.data);
         }
       }
-      
-      console.log("Finished submitting leasing records");
+
     } catch (error: any) {
       console.error("Error submitting leasing records:", error);
       console.error("Error details:", error.response?.data || error.message);
@@ -820,166 +640,200 @@ useEffect(() => {
     }
   };
 
-  // Similar updates for handleSubmitCertificates
 
   // Modify handleSubmit function to collect all leasing records
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // === Basic Validation ===
-  if (!formData.containerNumber) {
-    alert("Container Number is required");
-    return;
-  }
-
-  if (formData.ownership === "Own") {
-    if (!formData.onHireLocation) {
-      alert("On Hire Location (Port) is required for Own containers");
-      return;
-    }
-    if (!selectedHireDepotId) {
-      alert("On Hire Depot is required for Own containers");
-      return;
-    }
-  }
-
-  console.log("Submitting form with:", {
-    formData,
-    certificates: certificates.length,
-    reports: reports.length,
-    leasingRecords: leasingRecords.length,
-  });
-
-  // === Build Payload ===
-  const payload: any = {
-    status: formData.status,
-    containerNumber: formData.containerNumber,
-    containerCategory: formData.containerCategory,
-    containerType: formData.containerType,
-    containerSize: formData.containerSize,
-    containerClass: formData.containerClass,
-    containerCapacity: formData.containerCapacity,
-    capacityUnit: formData.capacityUnit,
-    manufacturer: formData.manufacturer,
-    buildYear: formData.buildYear,
-    grossWeight: formData.grossWeight,
-    tareWeight: formData.tareWeight,
-    InitialSurveyDate: formData.initialSurveyDate,
-    // Include nested data if creating new inventory
-    periodicTankCertificates: certificates,
-    onHireReport: reports,
-    leasingInfo: [],
-  };
-
-  // === Add Leasing Info for 'Own' if new record ===
-  if (!isEditMode && formData.ownership === "Own") {
-    const selectedPort = allPorts.find(p => p.portName === formData.onHireLocation);
-    if (!selectedPort) {
-      alert("Selected port not found");
+    if (!formData.containerNumber) {
+      alert("Container Number is required");
       return;
     }
 
-    const numericDepotId = typeof selectedHireDepotId === "string" ? parseInt(selectedHireDepotId) : selectedHireDepotId;
-    const numericPortId = typeof selectedPort.id === "string" ? parseInt(selectedPort.id) : selectedPort.id;
+    const payload: any = {
+      status: formData.status,
+      containerNumber: formData.containerNumber,
+      containerCategory: formData.containerCategory,
+      containerType: formData.containerType,
+      containerSize: formData.containerSize,
+      containerClass: formData.containerClass,
+      containerCapacity: formData.containerCapacity,
+      capacityUnit: formData.capacityUnit,
+      manufacturer: formData.manufacturer,
+      buildYear: formData.buildYear,
+      grossWeight: formData.grossWeight,
+      tareWeight: formData.tareWeight,
+      InitialSurveyDate: formData.initialSurveyDate,
 
-    payload.leasingInfo.push({
-      ownershipType: "Own",
-      leasingRefNo: `OWN-${formData.containerNumber}`,
-      leasoraddressbookId: numericDepotId,
-      onHireDepotaddressbookId: numericDepotId,
-      portId: numericPortId,
-      onHireDate: new Date().toISOString().split("T")[0],
-      offHireDate: null,
-      leaseRentPerDay: "",
-      remarks: "",
-    });
+      periodicTankCertificates: certificates.map((c) => ({
+        inspectionDate: c.inspectionDate,
+        inspectionType: c.inspectionType,
+        nextDueDate: c.nextDueDate,
+        certificate: typeof c.certificate === "string"
+          ? c.certificate
+          : c.certificateFile?.name || null, // fallback to filename if available
+      })),
 
-    // Also pass these top-level so backend can create movement history
-    payload.portId = numericPortId;
-    payload.onHireDepotaddressbookId = numericDepotId;
-    payload.ownership = "Own";
-  }
+      onHireReport: reports.map((r) => ({
+        reportDate: r.reportDate,
+        reportDocument: r.reportDocument,
+      })),
 
-  try {
-    let createdInventoryId = inventoryId;
+      leasingInfo: [],
+    };
 
-    if (isEditMode && inventoryId) {
-      // === EDIT: Update Inventory ===
-      const cleanPayload = { ...payload };
-      delete cleanPayload.periodicTankCertificates;
-      delete cleanPayload.onHireReport;
-      delete cleanPayload.leasingInfo;
-      delete cleanPayload.portId;
-      delete cleanPayload.onHireDepotaddressbookId;
-      delete cleanPayload.ownership;
+    // === Lease Logic ===
+    if (!isEditMode && formData.ownership === "Lease") {
+      if (leasingRecords.length === 0) {
+        alert("Please add at least one leasing record for a Leased container.");
+        return;
+      }
 
-      const response = await axios.patch(`http://localhost:8000/inventory/${inventoryId}`, cleanPayload);
-      createdInventoryId = response.data.id || inventoryId;
+      for (let i = 0; i < leasingRecords.length; i++) {
+        const record = leasingRecords[i];
 
-      // === Ownership Transition (Edit Mode Only) ===
-      const originalOwnership =
-        editData.leasingInfo?.[0]?.ownershipType || "Leased";
-      const currentOwnership =
-        formData.ownership === "Lease" ? "Leased" : "Own";
+        if (
+          !record.leasingRef ||
+          !record.leasoraddressbookId ||
+          !record.onHireDepotaddressbookId ||
+          !record.onHireDate ||
+          !record.onHireLocation
+        ) {
+          alert(`Missing leasing info in record ${i + 1}`);
+          return;
+        }
 
-      if (originalOwnership !== currentOwnership) {
-        console.log("Ownership changed, deleting old leasing records...");
-        for (const record of editData.leasingInfo || []) {
-          try {
+        const selectedPort = allPorts.find(p => p.portName === record.onHireLocation);
+        if (!selectedPort) {
+          alert(`Selected port not found for leasing record ${i + 1}`);
+          return;
+        }
+
+        payload.leasingInfo.push({
+          ownershipType: "Leased",
+          leasingRefNo: record.leasingRef,
+          leasoraddressbookId: parseInt(record.leasoraddressbookId),
+          onHireDepotaddressbookId: parseInt(record.onHireDepotaddressbookId),
+          portId: parseInt(selectedPort.id.toString()),
+          onHireDate: new Date(record.onHireDate).toISOString(),
+          offHireDate: record.offHireDate ? new Date(record.offHireDate).toISOString() : null,
+          leaseRentPerDay: record.leaseRentPerDay || "0",
+          remarks: record.remarks || "",
+        });
+
+        payload.portId = selectedPort.id;
+        payload.onHireDepotaddressbookId = parseInt(record.onHireDepotaddressbookId);
+        payload.ownership = "Lease";
+      }
+    }
+
+    // === Own Logic ===
+    if (!isEditMode && formData.ownership === "Own") {
+      if (!formData.onHireLocation || !selectedHireDepotId) {
+        alert("On Hire Location and Depot are required for Own containers");
+        return;
+      }
+
+      const selectedPort = allPorts.find(p => p.portName === formData.onHireLocation);
+      if (!selectedPort) {
+        alert("Selected port not found");
+        return;
+      }
+
+      const numericDepotId = parseInt(selectedHireDepotId.toString());
+      const numericPortId = parseInt(selectedPort.id.toString());
+
+      payload.leasingInfo.push({
+        ownershipType: "Own",
+        leasingRefNo: `OWN-${formData.containerNumber}`,
+        leasoraddressbookId: numericDepotId,
+        onHireDepotaddressbookId: numericDepotId,
+        portId: numericPortId,
+        onHireDate: new Date().toISOString().split("T")[0],
+        offHireDate: null,
+        leaseRentPerDay: "",
+        remarks: "",
+      });
+
+      payload.portId = numericPortId;
+      payload.onHireDepotaddressbookId = numericDepotId;
+      payload.ownership = "Own";
+    }
+
+    try {
+      let createdInventoryId = inventoryId;
+
+      if (isEditMode && inventoryId) {
+        // === EDIT Mode ===
+        const cleanPayload = { ...payload };
+        delete cleanPayload.periodicTankCertificates;
+        delete cleanPayload.onHireReport;
+        delete cleanPayload.leasingInfo;
+        delete cleanPayload.portId;
+        delete cleanPayload.onHireDepotaddressbookId;
+        delete cleanPayload.ownership;
+
+        const response = await axios.patch(`http://localhost:8000/inventory/${inventoryId}`, cleanPayload);
+        createdInventoryId = response.data.id || inventoryId;
+
+        const originalOwnership = editData.leasingInfo?.[0]?.ownershipType || "Leased";
+        const currentOwnership = formData.ownership === "Lease" ? "Leased" : "Own";
+
+        // Ownership changed
+        if (originalOwnership !== currentOwnership) {
+          for (const record of editData.leasingInfo || []) {
             await axios.delete(`http://localhost:8000/leasinginfo/${record.id}`);
-            console.log("Deleted leasing record:", record.id);
-          } catch (err) {
-            console.error("Error deleting leasing record:", err);
           }
         }
-      }
 
-      // === Add Leasing Record if switched to 'Own' ===
-      if (formData.ownership === "Own") {
-        const selectedPort = allPorts.find(p => p.portName === formData.onHireLocation);
-        if (!selectedPort) throw new Error("Port not found");
+        // === Handle updated leasing records ===
+        if (formData.ownership === "Own") {
+          const selectedPort = allPorts.find(p => p.portName === formData.onHireLocation);
+          if (!selectedPort) throw new Error("Port not found");
 
-        const numericDepotId = typeof selectedHireDepotId === "string" ? parseInt(selectedHireDepotId) : selectedHireDepotId;
-        const numericPortId = typeof selectedPort.id === "string" ? parseInt(selectedPort.id) : selectedPort.id;
+          const numericDepotId = parseInt(selectedHireDepotId.toString());
+          const numericPortId = parseInt(selectedPort.id.toString());
 
-        const ownLeasingData = {
-          ownershipType: "Own",
-          leasingRefNo: `OWN-${formData.containerNumber}`,
-          leasoraddressbookId: numericDepotId,
-          onHireDepotaddressbookId: numericDepotId,
-          portId: numericPortId,
-          onHireDate: new Date().toISOString().split('T')[0],
-          offHireDate: null,
-          leaseRentPerDay: "",
-          remarks: "",
-          inventoryId: createdInventoryId,
-        };
+          const ownLeasingData = {
+            ownershipType: "Own",
+            leasingRefNo: `OWN-${formData.containerNumber}`,
+            leasoraddressbookId: numericDepotId,
+            onHireDepotaddressbookId: numericDepotId,
+            portId: numericPortId,
+            onHireDate: new Date().toISOString().split("T")[0],
+            offHireDate: null,
+            leaseRentPerDay: "",
+            remarks: "",
+            inventoryId: createdInventoryId,
+          };
 
-        if (editData.leasingInfo?.length > 0) {
-          const existingId = editData.leasingInfo[0].id;
-          await axios.patch(`http://localhost:8000/leasinginfo/${existingId}`, ownLeasingData);
-        } else {
-          await axios.post("http://localhost:8000/leasinginfo", ownLeasingData);
+          if (editData.leasingInfo?.length > 0) {
+            const existingId = editData.leasingInfo[0].id;
+            await axios.patch(`http://localhost:8000/leasinginfo/${existingId}`, ownLeasingData);
+          } else {
+            await axios.post("http://localhost:8000/leasinginfo", ownLeasingData);
+          }
         }
+
+        if (formData.ownership === "Lease" && leasingRecords.length > 0) {
+          await handleSubmitLeasingRecords(createdInventoryId);
+        }
+
+      } else {
+        // === CREATE NEW ===
+        const response = await axios.post("http://localhost:8000/inventory", payload);
+        createdInventoryId = response.data.id;
       }
 
-      // === If switched to 'Lease' ===
-      if (formData.ownership === "Lease" && leasingRecords.length > 0) {
-        await handleSubmitLeasingRecords(createdInventoryId);
-      }
-
-    } else {
-      // === CREATE: New Inventory ===
-      const response = await axios.post("http://localhost:8000/inventory", payload);
-      createdInventoryId = response.data.id;
+      alert("Container saved successfully!");
+      onClose();
+    } catch (error: any) {
+      console.error("Error saving container:", error.response?.data || error.message);
+      alert("Failed to save container. Please check console for details.");
     }
+  };
 
-    alert("Container saved successfully!");
-  } catch (error: any) {
-    console.error("Error saving container:", error.response?.data || error.message);
-    alert("Failed to save container. Please check console for details.");
-  }
-};
+
 
 
   // Add this derived state for easier checks
@@ -1023,9 +877,9 @@ useEffect(() => {
         <h2 className="text-xl font-semibold text-white">
           {isEditMode ? "Edit Container" : "Add Container"}
         </h2>
-        <Button 
-          variant="ghost" 
-          onClick={onClose} 
+        <Button
+          variant="ghost"
+          onClick={onClose}
           className="text-neutral-400 hover:text-white h-8 w-8 p-0 cursor-pointer"
         >
           &times;
@@ -1304,7 +1158,7 @@ useEffect(() => {
                   onChange={e => {
                     const selectedId = Number(e.target.value);
                     setSelectedHireDepotId(selectedId);
-                    
+
                     // Also update the formData with the selected depot ID and name
                     const selectedDepot = hireDepotOptions.find(opt => opt.value === selectedId);
                     setFormData(prev => ({
@@ -1317,10 +1171,10 @@ useEffect(() => {
                   disabled={!formData.onHireLocation}
                 >
                   <option value="">
-                    {!formData.onHireLocation 
-                      ? "Select a port first" 
-                      : hireDepotOptions.length === 0 
-                        ? "No depot terminals available for this port" 
+                    {!formData.onHireLocation
+                      ? "Select a port first"
+                      : hireDepotOptions.length === 0
+                        ? "No depot terminals available for this port"
                         : "Select Hire Depot"}
                   </option>
                   {hireDepotOptions.map(opt => (
@@ -1371,7 +1225,7 @@ useEffect(() => {
                             const updated = [...leasingRecords];
                             updated[index].leasingRef = e.target.value;
                             // Mark as modified when changed
-                            updated[index].isModified = true; 
+                            updated[index].isModified = true;
                             setLeasingRecords(updated);
                           }}
                           className="w-full p-1 bg-neutral-700 rounded text-white text-xs border border-neutral-600 focus:border-blue-500"
@@ -1423,13 +1277,13 @@ useEffect(() => {
 
                             const updated = [...leasingRecords];
                             updated[index].onHireLocation = selectedPortName;
-                            
+
                             // Also reset the depot selection when port changes
                             updated[index].onHireDepotaddressbookId = "";
                             updated[index].isModified = true;
-                            
+
                             setLeasingRecords(updated);
-                            
+
                             // Set the current leasing record index
                             setCurrentLeasingRecordIndex(index);
 
@@ -1464,12 +1318,12 @@ useEffect(() => {
                           className={`w-full p-1 rounded text-white text-xs border border-neutral-600 focus:border-blue-500 ${currentLeasingRecordIndex === index ? 'bg-neutral-700' : 'bg-neutral-700'}`}
                         >
                           <option value="">
-                            {!record.onHireLocation 
-                              ? "Select a port first" 
-                              : currentLeasingRecordIndex !== index 
-                                ? "Click port again to load depots" 
-                                : hireDepotOptions.length === 0 
-                                  ? "No depot terminals available for this port" 
+                            {!record.onHireLocation
+                              ? "Select a port first"
+                              : currentLeasingRecordIndex !== index
+                                ? "Click port again to load depots"
+                                : hireDepotOptions.length === 0
+                                  ? "No depot terminals available for this port"
                                   : "Select Depot"}
                           </option>
                           {(currentLeasingRecordIndex === index || record.onHireDepotName) && hireDepotOptions.map(opt => (
@@ -1585,7 +1439,7 @@ useEffect(() => {
                         className="w-full px-3 py-2 text-sm bg-neutral-700 text-white rounded border border-neutral-600 focus:border-blue-500 cursor-pointer"
                       />
                     </td>
-                    <td className="py-2 min-w-[150px] pr-2">  {/* Added min-w-[150px] and pr-2 */}
+                    <td className="py-2 min-w-[150px] pr-2"> 
                       <select
                         value={cert.inspectionType}
                         onChange={(e) => {
@@ -1599,7 +1453,7 @@ useEffect(() => {
                         <option value="Periodic 5Yr">Periodic 5Yr</option>
                       </select>
                     </td>
-                    <td className="py-2 min-w-[150px] pr-2">  {/* Added min-w-[150px] and pr-2 */}
+                    <td className="py-2 min-w-[150px] pr-2"> 
                       <input
                         type="date"
                         value={cert.nextDueDate}
@@ -1622,10 +1476,10 @@ useEffect(() => {
                           }}
                           className="w-full px-3 py-2 text-sm bg-neutral-700 text-white rounded border border-neutral-600 focus:border-blue-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-neutral-600 file:text-white cursor-pointer"
                         />
-                        
+
                         {/* Show PDF link if certificate exists and no new file is selected */}
                         {cert.certificate && !cert.certificateFile && (
-                          <a 
+                          <a
                             href={`http://localhost:8000/uploads/certificates/${cert.certificate}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -1640,7 +1494,7 @@ useEffect(() => {
                         )}
                       </div>
                     </td>
-                    <td className="py-2 min-w-[70px]">  {/* Added min-w-[80px] */}
+                    <td className="py-2 min-w-[70px]"> 
                       <Button
                         type="button"
                         variant="ghost"
@@ -1718,10 +1572,10 @@ useEffect(() => {
                           }}
                           className="w-full px-3 py-2 text-sm bg-neutral-700 text-white rounded border border-neutral-600 focus:border-blue-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-neutral-600 file:text-white cursor-pointer"
                         />
-                        
+
                         {/* Show PDF link if report document exists and no new file is selected */}
                         {report.reportDocumentName && !report.reportDocument && (
-                          <a 
+                          <a
                             href={`http://localhost:8000/uploads/reports/${report.reportDocumentName}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -1753,7 +1607,7 @@ useEffect(() => {
 
             <Button
               type="button"
-              onClick={() => 
+              onClick={() =>
                 setReports([
                   ...reports,
                   {

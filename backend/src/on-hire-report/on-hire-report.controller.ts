@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors, Req } from '@nestjs/common';
 import { OnHireReportService } from './on-hire-report.service';
-import { CreateOnHireReportDto } from './dto/create-onhire-report.dto';
-import { UpdatePeriodicTankCertificateDto } from 'src/tank-certificate/dto/updateTankCertificate.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { OnHireReportDto } from './dto/create-onhire-report.dto';
+import { UpdateOnHireReportDto } from './dto/update-onhire-report.dto';
 
 @Controller('onhirereport')
 export class OnHireReportController {
@@ -51,7 +51,7 @@ uploadReport(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
 
   // ADD THIS MISSING CREATE ENDPOINT
   @Post()
-  create(@Body() createOnHireReportDto: CreateOnHireReportDto) {
+  create(@Body() createOnHireReportDto: OnHireReportDto) {
     return this.service.create(createOnHireReportDto);
   }
 
@@ -68,7 +68,7 @@ uploadReport(@UploadedFile() file: Express.Multer.File, @Req() req: any) {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePeriodicTankCertificateDto,
+    @Body() dto: UpdateOnHireReportDto,
   ) {
     return this.service.update(id, dto);
   }

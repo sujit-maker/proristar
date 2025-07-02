@@ -26,7 +26,7 @@ type SelectOptions = {
   shippingTerm: Option[];
 };
 
-const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments }: any) => {
+const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments, }: any) => {
   const [carrierSuggestions, setCarrierSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -39,7 +39,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments 
   const [showTranshipmentDropdown, setShowTranshipmentDropdown] = useState(false);
   const [impHandlingAgents, setImpHandlingAgents] = useState<{ id: number; companyName: string }[]>([]);
   const [expAgents, setExpAgents] = useState<{ id: number; companyName: string }[]>([]);
-  const [emptyReturnDepots, setEmptyReturnDepots] = useState<{ id: number; companyName: string }[]>([]);
+  const [emptyReturnDepots, setEmptyReturnDepots] = useState<{ id: number; companyName: string; businessType?: string }[]>([]);
 
   useEffect(() => {
     const fetchMovements = async () => {
@@ -207,6 +207,8 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments 
     }
   };
 
+  
+
   const fetchPorts = async (searchTerm: string) => {
     try {
       const res = await fetch("http://localhost:8000/ports");
@@ -316,27 +318,30 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments 
   }, []);
 
   const fetchEmptyReturnDepotsByPort = async (portId: number) => {
-    try {
-      const res = await fetch("http://localhost:8000/addressbook");
-      const data = await res.json();
+  try {
+    const res = await fetch("http://localhost:8000/addressbook");
+    const data = await res.json();
 
-      const filtered = data.filter((entry: any) => {
-        const hasDeportTerminal = entry.businessType
-          ?.toLowerCase()
-          .includes("deport terminal");
+    const filtered = data.filter((entry: any) => {
+      const businessType = (entry.businessType || "").toLowerCase();
 
-        const linkedToPort = entry.businessPorts?.some(
-          (bp: any) => bp.portId === portId
-        );
+      const isDepotOrCY =
+        businessType.includes("deport terminal") ||
+        businessType.includes("cy terminal");
 
-        return hasDeportTerminal && linkedToPort;
-      });
+      const linkedToPort =
+        Array.isArray(entry.businessPorts) &&
+        entry.businessPorts.some((bp: any) => bp.portId === portId);
 
-      setEmptyReturnDepots(filtered);
-    } catch (err) {
-      console.error("Failed to fetch empty return depots:", err);
-    }
-  };
+      return isDepotOrCY && linkedToPort;
+    });
+
+    setEmptyReturnDepots(filtered);
+  } catch (err) {
+    console.error("Failed to fetch empty return depots:", err);
+  }
+};
+
 
   useEffect(() => {
     if (form.portOfDischargeId) {
@@ -1039,9 +1044,14 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments 
                       </SelectTrigger>
                       <SelectContent className="bg-neutral-800 text-white border border-neutral-700">
                         {emptyReturnDepots.map((depot) => (
-                          <SelectItem key={depot.id} value={depot.id.toString()} className="text-white">
-                            {depot.companyName}
-                          </SelectItem>
+                         <SelectItem
+  key={depot.id}
+  value={depot.id.toString()}
+  className="text-white"
+>
+  {depot.companyName} - {depot.businessType}
+</SelectItem>
+
                         ))}
                       </SelectContent>
                     </Select>

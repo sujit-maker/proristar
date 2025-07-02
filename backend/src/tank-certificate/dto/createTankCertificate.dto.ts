@@ -1,9 +1,13 @@
-import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsDateString, IsString, IsInt } from 'class-validator';
 
-export class CreatePeriodicTankCertificateDto {
+export class CertificateDto {
+  @IsOptional()
+  @IsInt()
+  id?: number;
+
   @IsOptional()
   @IsDateString()
-  inspectionDate?: Date;
+  inspectionDate?: string;
 
   @IsOptional()
   @IsString()
@@ -11,12 +15,12 @@ export class CreatePeriodicTankCertificateDto {
 
   @IsOptional()
   @IsDateString()
-  nextDueDate?: Date;
+  nextDueDate?: string;
 
   @IsOptional()
   @IsString()
-  certificate?: string; // ✅ corrected
+  certificate?: string;
 
-  @IsInt()
-  inventoryId: number;
+   @IsInt()
+  inventoryId: number; 
 }

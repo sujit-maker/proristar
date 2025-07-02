@@ -254,13 +254,16 @@ const AllShipmentsPage = () => {
         </Button>
 
         {showModal && (
-          <AddShipmentForm
-            onClose={() => setShowModal(false)}
-            formTitle={formData.id ? 'Edit Shipment' : 'New Shipment Job'}
-            form={formData}
-            setForm={setFormData}
-            refreshShipments={fetchShipments}
-          />
+         <AddShipmentForm
+  onClose={() => setShowModal(false)}
+  formTitle={formData.id ? 'Edit Shipment' : 'New Shipment Job'}
+  form={formData}
+  setForm={setFormData}
+  refreshShipments={fetchShipments}
+  selectedContainers={selectedContainers}
+  setSelectedContainers={setSelectedContainers}
+/>
+
         )}
       </div>
 

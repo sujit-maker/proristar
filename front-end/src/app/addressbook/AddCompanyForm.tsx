@@ -542,6 +542,7 @@ const AddCompanyForm = ({
                     "Consignee",
                     "Surveyor",
                     "Leasor",
+                    "CY Terminal"
                   ].map((type) => (
                     <label
                       key={type}

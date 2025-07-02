@@ -42,8 +42,11 @@ const AddTariffModal = ({
     axios.get("http://localhost:8000/addressbook").then((res) => {
       // Change from exact match to includes match
       const terminals = res.data.filter(
-        (a: any) => a.businessType && a.businessType.includes("Deport Terminal")
-      );
+       (a: any) =>
+        a.businessType &&
+        (a.businessType.includes("Deport Terminal") ||
+         a.businessType.includes("CY Terminal"))
+    );
       setAddressBookList(terminals);
     });
 
@@ -206,28 +209,29 @@ const AddTariffModal = ({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-y-4">
-            <div>
-              <Label className="block text-xs text-white mb-1">Depot Terminal Name</Label>
-              <select
-                value={form.depotTerminalId || ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    depotTerminalId: e.target.value,
-                    servicePort: "",
-                  })
-                }
-                className="w-full p-2 bg-neutral-800 text-white rounded border border-neutral-700 text-sm"
-              >
-                <option value="">Select</option>
-                {addressBookList.map((d: any) => (
-                  <option key={d.id} value={d.id}>
-                    {d.companyName}
-                  </option>
-                ))}
-              </select>
-            </div>
+         <div className="grid grid-cols-1 gap-y-4">
+  <div>
+    <Label className="block text-xs text-white mb-1">Depot Terminal Name</Label>
+    <select
+      value={form.depotTerminalId || ""}
+      onChange={(e) =>
+        setForm({
+          ...form,
+          depotTerminalId: e.target.value,
+          servicePort: "",
+        })
+      }
+      className="w-full p-2 bg-neutral-800 text-white rounded border border-neutral-700 text-sm"
+    >
+      <option value="">Select</option>
+      {addressBookList.map((d: any) => (
+        <option key={d.id} value={d.id}>
+          {d.companyName} - {d.businessType}
+        </option>
+      ))}
+    </select>
+  </div>
+
 
             <div>
               <Label className="block text-xs text-white mb-1">Service Port</Label>

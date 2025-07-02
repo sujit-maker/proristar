@@ -1,10 +1,11 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { CreatePeriodicTankCertificateDto } from './dto/createTankCertificate.dto';
-import { UpdatePeriodicTankCertificateDto } from './dto/updateTankCertificate.dto';
+
 import { TankCertificateService } from './tank-certificate.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { diskStorage } from 'multer';
+import { CertificateDto } from './dto/createTankCertificate.dto';
+import { UpdateCertificateDto } from './dto/updateTankCertificate.dto';
 
 
 @Controller('tankcertificate')
@@ -32,7 +33,7 @@ export class TankCertificateController {
   )
   async create(
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: CreatePeriodicTankCertificateDto,
+    @Body() dto: CertificateDto,
   ) {
     const filePath = file?.filename; // Save just the filename or full path
     return this.service.create({
@@ -72,7 +73,7 @@ export class TankCertificateController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: UpdatePeriodicTankCertificateDto,
+    @Body() dto: UpdateCertificateDto,
   ) {
     const filePath = file?.filename;
 
