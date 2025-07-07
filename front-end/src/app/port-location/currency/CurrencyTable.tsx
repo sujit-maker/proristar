@@ -51,7 +51,7 @@ const CurrencyPage = () => {
 
   const fetchCurrency = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/currency");
+      const res = await axios.get("http://128.199.19.28:8000/currency");
       setCurrencies(res.data);
     } catch (err) {
       console.error("Error fetching currencies:", err);
@@ -69,7 +69,7 @@ const CurrencyPage = () => {
 
   const handleEditClick = async (id: number) => {
     try {
-      const res = await axios.get(`http://localhost:8000/currency/${id}`);
+      const res = await axios.get(`http://128.199.19.28:8000/currency/${id}`);
       setEditCurrency(res.data);
       setShowModal(true);
     } catch (err) {
@@ -89,7 +89,7 @@ const CurrencyPage = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/currency/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/currency/${id}`);
       alert("Currency deleted successfully.");
       fetchCurrency();
     } catch (err: any) {

@@ -120,7 +120,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({
     if (!editData) {
       // Only fetch next productId if NOT editing
       axios
-        .get("http://localhost:8000/products/next-id")
+        .get("http://128.199.19.28:8000/products/next-id")
         .then((res) => {
           setFormData((prev) => ({
             ...prev,
@@ -446,7 +446,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({
                                 {/* Show PDF link if certificate exists and no new file is selected */}
                                 {record.certificateName && !record.certificate && (
                                   <a 
-                                    href={`http://localhost:8000/uploads/${record.certificateName}`}
+                                    href={`http://128.199.19.28:8000/uploads/${record.certificateName}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-blue-400 hover:text-blue-300 mt-1 flex items-center"

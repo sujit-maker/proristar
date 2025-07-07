@@ -42,7 +42,7 @@ const CountryPage = () => {
 
   const fetchCountries = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/country");
+      const response = await axios.get("http://128.199.19.28:8000/country");
       setCountries(
         response.data.map((item: any) => ({
           ...item,
@@ -65,7 +65,7 @@ const CountryPage = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/country/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/country/${id}`);
       fetchCountries();
     } catch (err: any) {
       alert(

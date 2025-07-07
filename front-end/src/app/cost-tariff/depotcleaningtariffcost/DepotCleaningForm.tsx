@@ -28,7 +28,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
       setLoadingCode(true);
       
       axios
-        .get("http://localhost:8000/depot-cleaning-tariff-cost/next-tariff-code")
+        .get("http://128.199.19.28:8000/depot-cleaning-tariff-cost/next-tariff-code")
         .then((res) => {
           setForm((prevForm: any) => ({
             ...prevForm,
@@ -50,14 +50,14 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
 
   // 🟡 Fetch products
   useEffect(() => {
-    axios.get("http://localhost:8000/products").then((res) => {
+    axios.get("http://128.199.19.28:8000/products").then((res) => {
       setProducts(res.data);
     });
   }, []);
 
   // 🟡 Fetch depot terminals
  useEffect(() => {
-  axios.get("http://localhost:8000/addressbook").then((res) => {
+  axios.get("http://128.199.19.28:8000/addressbook").then((res) => {
     const filtered = res.data.filter(
       (a: any) =>
         a.businessType &&
@@ -71,7 +71,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
 
   // 🟡 Fetch currencies
   useEffect(() => {
-    axios.get("http://localhost:8000/currency").then((res) => {
+    axios.get("http://128.199.19.28:8000/currency").then((res) => {
       setCurrencies(res.data);
     });
   }, []);
@@ -143,7 +143,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm }: any) => {
     };
 
     try {
-      const url = "http://localhost:8000/depot-cleaning-tariff-cost";
+      const url = "http://128.199.19.28:8000/depot-cleaning-tariff-cost";
       let response;
       
       if (form.id) {

@@ -460,7 +460,7 @@ const DataImportTable = () => {
     
     try {
       // Fetch all countries to map country names to IDs
-      const countriesResponse = await axios.get("http://localhost:8000/country");
+      const countriesResponse = await axios.get("http://128.199.19.28:8000/country");
       const countries = countriesResponse.data;
       
       // Process each row
@@ -523,7 +523,7 @@ const DataImportTable = () => {
           }
           
           // Submit to API
-          await axios.post("http://localhost:8000/addressbook", payload);
+          await axios.post("http://128.199.19.28:8000/addressbook", payload);
           successCount.value++;
         } catch (error: any) {
           failedCount.value++;
@@ -573,11 +573,11 @@ const DataImportTable = () => {
     
     try {
       // Fetch all countries to map country names to IDs
-      const countriesResponse = await axios.get("http://localhost:8000/country");
+      const countriesResponse = await axios.get("http://128.199.19.28:8000/country");
       const countries = countriesResponse.data;
       
       // Fetch all ports to map parent port names to IDs
-      const portsResponse = await axios.get("http://localhost:8000/ports");
+      const portsResponse = await axios.get("http://128.199.19.28:8000/ports");
       const ports = portsResponse.data;
       
       // Process each row
@@ -653,7 +653,7 @@ const DataImportTable = () => {
           delete payload.parentPortName; // Remove this field even if not used
           
           // Submit to API
-          await axios.post("http://localhost:8000/ports", payload);
+          await axios.post("http://128.199.19.28:8000/ports", payload);
           successCount.value++;
         } catch (error: any) {
           failedCount.value++;
@@ -703,11 +703,11 @@ const DataImportTable = () => {
     
     try {
       // Fetch all address book entries to map names to IDs
-      const addressBookResponse = await axios.get("http://localhost:8000/addressbook");
+      const addressBookResponse = await axios.get("http://128.199.19.28:8000/addressbook");
       const addressBookEntries = addressBookResponse.data;
       
       // Fetch all ports to map port names to IDs
-      const portsResponse = await axios.get("http://localhost:8000/ports");
+      const portsResponse = await axios.get("http://128.199.19.28:8000/ports");
       const portsEntries = portsResponse.data;
       
       // Process each row
@@ -749,7 +749,7 @@ const DataImportTable = () => {
           // console.log("=== End Debug ===\n");
           
           // Step 2: Submit to inventory API and get the ID
-          const inventoryResponse = await axios.post("http://localhost:8000/inventory", inventoryPayload);
+          const inventoryResponse = await axios.post("http://128.199.19.28:8000/inventory", inventoryPayload);
           const inventoryId = inventoryResponse.data.id;
           
           // Debug: Log the response to see if gross/tare weights were saved
@@ -842,7 +842,7 @@ const DataImportTable = () => {
               console.log(`Creating leasing info for Own container:`, ownLeasingPayload);
               
               // Submit to leasing info API
-              await axios.post("http://localhost:8000/leasinginfo", ownLeasingPayload);
+              await axios.post("http://128.199.19.28:8000/leasinginfo", ownLeasingPayload);
               console.log(`Successfully created leasing info for Own container ${row["Container Number"]}`);
             } // Close the else block for Own container leasing creation
           } // Close the if block for Own ownership
@@ -916,7 +916,7 @@ const DataImportTable = () => {
                 
                 try {
                   // Submit to leasing info API
-                  await axios.post("http://localhost:8000/leasinginfo", leasedLeasingPayload);
+                  await axios.post("http://128.199.19.28:8000/leasinginfo", leasedLeasingPayload);
                   console.log(`Successfully created leasing info for Leased container ${row["Container Number"]}`);
                   
                   // Create on-hire report
@@ -927,7 +927,7 @@ const DataImportTable = () => {
                     };
                     
                     // Submit to on-hire report API
-                    await axios.post("http://localhost:8000/onhirereport", onHireReportPayload);
+                    await axios.post("http://128.199.19.28:8000/onhirereport", onHireReportPayload);
                   } catch (reportError: any) {
                     console.warn(`On-hire report creation failed for row ${i+1}: ${reportError.message}`);
                     // We don't fail the whole import for this, just log a warning
@@ -952,7 +952,7 @@ const DataImportTable = () => {
             };
             
             // Submit to tank certificate API
-            await axios.post("http://localhost:8000/tankcertificate", certificatePayload);
+            await axios.post("http://128.199.19.28:8000/tankcertificate", certificatePayload);
           }
           
           successCount.value++;

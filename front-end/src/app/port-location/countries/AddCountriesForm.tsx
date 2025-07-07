@@ -58,7 +58,7 @@ const AddCountryForm: React.FC<AddCountryFormProps> = ({
   // Load currencies
   useEffect(() => {
     axios
-      .get("http://localhost:8000/currency")
+      .get("http://128.199.19.28:8000/currency")
       .then((res) => setCurrencies(res.data))
       .catch((err) => console.error("Failed to fetch currencies", err));
   }, []);
@@ -94,11 +94,11 @@ const AddCountryForm: React.FC<AddCountryFormProps> = ({
     try {
       if (editData) {
         await axios.patch(
-          `http://localhost:8000/country/${editData.id}`,
+          `http://128.199.19.28:8000/country/${editData.id}`,
           dataWithoutStatus
         );
       } else {
-        await axios.post("http://localhost:8000/country", dataWithoutStatus);
+        await axios.post("http://128.199.19.28:8000/country", dataWithoutStatus);
       }
       onClose();
       onSuccess?.();

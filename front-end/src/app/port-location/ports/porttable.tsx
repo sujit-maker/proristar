@@ -54,7 +54,7 @@ const PortTable = () => {
 
   const fetchPorts = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/ports");
+      const res = await axios.get("http://128.199.19.28:8000/ports");
       setPorts(res.data);
     } catch (error) {
       console.error("Error fetching ports:", error);
@@ -78,7 +78,7 @@ const PortTable = () => {
 
   const handleEditClick = async (id: number) => {
     try {
-      const res = await axios.get(`http://localhost:8000/ports/${id}`);
+      const res = await axios.get(`http://128.199.19.28:8000/ports/${id}`);
       setEditData(res.data);
       setShowForm(true);
     } catch (err) {
@@ -93,7 +93,7 @@ const PortTable = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/ports/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/ports/${id}`);
       fetchPorts();
     } catch (err: any) {
       alert(

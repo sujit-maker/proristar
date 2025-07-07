@@ -14,7 +14,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm, fetchTariffs }: any
   useEffect(() => {
     if (!form?.id) {
       axios
-        .get("http://localhost:8000/land-transport-tariff/next-tariff-code")
+        .get("http://128.199.19.28:8000/land-transport-tariff/next-tariff-code")
         .then((res) =>
           setForm((prev: any) => ({ ...prev, landTransportTariffCode: res.data.nextTariffCode }))
         )
@@ -24,7 +24,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm, fetchTariffs }: any
     }
 
     // Update this filter to use includes() instead of exact match
-    axios.get("http://localhost:8000/addressbook").then((res) => {
+    axios.get("http://128.199.19.28:8000/addressbook").then((res) => {
       // Get companies that have "Land Transport" in their businessType field
       const filtered = res.data.filter(
         (c: any) => c.businessType && c.businessType.includes("Land Transport")
@@ -32,7 +32,7 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm, fetchTariffs }: any
       setAddressBookList(filtered);
     });
 
-    axios.get("http://localhost:8000/currency").then((res) => setCurrencyList(res.data));
+    axios.get("http://128.199.19.28:8000/currency").then((res) => setCurrencyList(res.data));
   }, [form?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,9 +70,9 @@ const AddTariffModal = ({ onClose, formTitle, form, setForm, fetchTariffs }: any
       };
 
       if (form?.id) {
-        await axios.patch(`http://localhost:8000/land-transport-tariff/${form.id}`, payload);
+        await axios.patch(`http://128.199.19.28:8000/land-transport-tariff/${form.id}`, payload);
       } else {
-        await axios.post("http://localhost:8000/land-transport-tariff", payload);
+        await axios.post("http://128.199.19.28:8000/land-transport-tariff", payload);
       }
 
       fetchTariffs();

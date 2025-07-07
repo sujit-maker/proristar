@@ -53,7 +53,7 @@ const ContainerLeaseTariffPage = () => {
     const fetchTariffs = async () => {
       try {
         const response = await fetch(
-          "http://localhost:8000/container-lease-tariff"
+          "http://128.199.19.28:8000/container-lease-tariff"
         );
         if (!response.ok) {
           throw new Error("Failed to fetch tariffs");
@@ -85,7 +85,7 @@ const ContainerLeaseTariffPage = () => {
 
   function handleDelete(id: number): void {
     if (window.confirm("Are you sure you want to delete this tariff?")) {
-      fetch(`http://localhost:8000/container-lease-tariff/${id}`, {
+      fetch(`http://128.199.19.28:8000/container-lease-tariff/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

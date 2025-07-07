@@ -43,7 +43,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/inventory');
+        const response = await axios.get('http://128.199.19.28:8000/inventory');
         setInventoryCount(response.data.length);
       } catch (error) {
         console.error('Failed to fetch inventory:', error);
@@ -52,7 +52,7 @@ const DashboardPage = () => {
 
     const fetchMovementHistory = async () => {
   try {
-    const res = await axios.get('http://localhost:8000/movement-history');
+    const res = await axios.get('http://128.199.19.28:8000/movement-history');
     const data = res.data;
 
     const latestByContainer = new Map<string, any>();
@@ -99,14 +99,14 @@ const fetchShipmentStats = async (
   allMovements: any[]
 ) => {
   try {
-    const res = await axios.get('http://localhost:8000/shipment');
+    const res = await axios.get('http://128.199.19.28:8000/shipment');
     const shipments: any[] = res.data;
 
     // Map of shipmentId to list of container statuses
     const shipmentMap = new Map<number, string[]>();
 
     // Use containerNumber to get all matching entries from original history
-    const movementHistoryRes = await axios.get('http://localhost:8000/movement-history');
+    const movementHistoryRes = await axios.get('http://128.199.19.28:8000/movement-history');
     const allMovements: any[] = movementHistoryRes.data;
 
     latestByContainer.forEach((latestEntry, containerNumber) => {
@@ -158,7 +158,7 @@ const fetchEmptyRepoStats = async (
   allMovements: any[]
 ) => {
   try {
-    const res = await axios.get('http://localhost:8000/empty-repo-job');
+    const res = await axios.get('http://128.199.19.28:8000/empty-repo-job');
     const jobs = res.data;
 
     const latestStatusByJobId = new Map<number, string>();

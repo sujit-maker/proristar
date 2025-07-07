@@ -57,12 +57,12 @@ const AddCurrencyForm: React.FC<CurrencyFormProps> = ({
       if (initialData?.id) {
         // PUT for edit
         response = await axios.patch(
-          `http://localhost:8000/currency/${initialData.id}`,
+          `http://128.199.19.28:8000/currency/${initialData.id}`,
           formData
         );
       } else {
         // POST for add
-        response = await axios.post("http://localhost:8000/currency", formData);
+        response = await axios.post("http://128.199.19.28:8000/currency", formData);
       }
       onSubmit(response.data);
       onClose();

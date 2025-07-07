@@ -29,45 +29,80 @@ const AllShipmentsPage = () => {
     id: undefined,
     status: true,
     quotationRefNo: '',
-    refNumber: '',
+    referenceNumber: '',
     masterBL: '',
     shippingTerm: '',
     date: '',
-    gsDate: '',
-    sob: '',
-    etaTopod: '',
-    estimateDate: '',
-
     jobNumber: '',
 
+    // Customer/Company fields
+    customerName: '',
     customerId: '',
-    shipperId: '',
+    consigneeName: '',
     consigneeId: '',
+    consigneeAddressBookId: '',
+    shipperName: '',
+    shipperId: '',
+    shipperAddressBookId: '',
+    carrierName: '',
     carrierId: '',
+    carrierAddressBookId: '',
+
+    // Product fields
     productId: '',
+    productName: '',
+
+    // Port fields
     portOfLoading: '',
     portOfDischarge: '',
-    transhipmentPortId: '',
-    expHandlingAgentId: '',
-    impHandlingAgentId: '',
-    emptyReturnDepotId: '',
-
+    podPortId: '',
+    polPortId: '',
     enableTranshipmentPort: false,
+    transhipmentPortName: '',
+    transhipmentPortId: '',
 
+    // Agent fields
+    expHandlingAgent: '',
+    expHandlingAgentId: '',
+    expHandlingAgentAddressBookId: '',
+    impHandlingAgent: '',
+    impHandlingAgentId: '',
+    impHandlingAgentAddressBookId: '',
+
+    // Depot fields
+    emptyReturnDepot: '',
+    emptyReturnDepotId: '',
+    emptyReturnDepotAddressBookId: '',
+
+    // Container fields
     quantity: '',
     containerNumber: '',
     capacity: '',
     tare: '',
 
+    // Date fields
+    gateClosingDate: '',
+    sobDate: '',
+    etaToPod: '',
+    estimatedEmptyReturnDate: '',
+    gsDate: '',
+    sob: '',
+    etaTopod: '',
+    estimateDate: '',
+
+    // Free days and detention
     freeDays1: '',
     detentionRate1: '',
     freeDays2: '',
     detentionRate2: '',
+
+    // Vessel
+    vesselName: '',
   });
 
   const fetchShipments = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/shipment');
+      const res = await axios.get('http://128.199.19.28:8000/shipment');
       setShipments(res.data);
     } catch (err) {
       console.error('Failed to fetch shipments', err);
@@ -76,7 +111,7 @@ const AllShipmentsPage = () => {
 
   useEffect(() => {
     // Fetch once and log the raw response
-    axios.get('http://localhost:8000/shipment')
+    axios.get('http://128.199.19.28:8000/shipment')
       .then(res => {
         setShipments(res.data);
       })
@@ -88,7 +123,7 @@ const AllShipmentsPage = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:8000/shipment/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/shipment/${id}`);
       await fetchShipments();
     } catch (err) {
       console.error('Failed to delete shipment', err);
@@ -97,70 +132,94 @@ const AllShipmentsPage = () => {
   };
 
   const handleEdit = (shipment: any) => {
-
-    // Initialize selectedContainers with the existing containers
-    const existingContainers = (shipment.containers || []).map((container: any) => ({
-      containerNumber: container.containerNumber || "",
-      capacity: container.capacity || "",
-      tare: container.tare || "",
-      inventoryId: container.inventoryId || null,
-      portId: container.portId || null,
-      depotName: container.depotName || "",
-    }));
-
-    // Use correct field names matching what the form expects
     setFormData({
       id: shipment.id,
-      status: shipment.status ?? true,
+      status: true,
       quotationRefNo: shipment.quotationRefNumber || '',
       date: shipment.date ? new Date(shipment.date).toISOString().split('T')[0] : '',
       jobNumber: shipment.jobNumber || '',
-      refNumber: shipment.refNumber || '',
+      referenceNumber: shipment.refNumber || '',
       masterBL: shipment.masterBL || '',
+
+      // FIX: Ensure shipping term is passed correctly
       shippingTerm: shipment.shippingTerm || '',
 
-      // Field names must match the state definition
+      // Field names must match what the form expects
+      customerName: shipment.custAddressBookId?.toString() || '',
       customerId: shipment.custAddressBookId?.toString() || '',
+      consigneeName: '', // Will be populated by the useEffect in AddShipmentForm
       consigneeId: shipment.consigneeAddressBookId?.toString() || '',
+      consigneeAddressBookId: shipment.consigneeAddressBookId,
+      shipperName: '', // Will be populated by the useEffect in AddShipmentForm
       shipperId: shipment.shipperAddressBookId?.toString() || '',
+      shipperAddressBookId: shipment.shipperAddressBookId,
       carrierId: shipment.carrierAddressBookId?.toString() || '',
-
-      // Product info
+      carrierAddressBookId: shipment.carrierAddressBookId,
+      carrierName: '', // Will be populated by the useEffect in AddShipmentForm
       productId: shipment.productId?.toString() || '',
+      productName: '', // Will be populated by the useEffect in AddShipmentForm
 
-      // Ports 
-      portOfLoading: shipment.polPortId?.toString() || '',
-      portOfDischarge: shipment.podPortId?.toString() || '',
+      // FIX: Port fields - use the actual port IDs for the select components
+      polPortId: shipment.polPortId,
+      podPortId: shipment.podPortId,
+      portOfLoading: shipment.polPortId?.toString() || '', // Use ID, not name
+      portOfDischarge: shipment.podPortId?.toString() || '', // Use ID, not name
       enableTranshipmentPort: !!shipment.transhipmentPortId,
+      transhipmentPortName: shipment.transhipmentPortId?.toString() || '',
       transhipmentPortId: shipment.transhipmentPortId?.toString() || '',
 
-      // Free days and detention
+      // Free days and detention - Form expects these exact field names
       freeDays1: shipment.polFreeDays || '',
       detentionRate1: shipment.polDetentionRate || '',
       freeDays2: shipment.podFreeDays || '',
       detentionRate2: shipment.podDetentionRate || '',
 
-      // Handling agents
+      // Handling agents - Form expects these exact field names
+      expHandlingAgent: shipment.expHandlingAgentAddressBookId?.toString() || '',
       expHandlingAgentId: shipment.expHandlingAgentAddressBookId?.toString() || '',
+      expHandlingAgentAddressBookId: shipment.expHandlingAgentAddressBookId,
+      impHandlingAgent: shipment.impHandlingAgentAddressBookId?.toString() || '',
       impHandlingAgentId: shipment.impHandlingAgentAddressBookId?.toString() || '',
+      impHandlingAgentAddressBookId: shipment.impHandlingAgentAddressBookId,
 
-      // Container data
+      // FIX: Depot - use the correct field names from the backend
+      emptyReturnDepotAddressBookId: shipment.emptyReturnDepotAddressBookId,
+      emptyReturnDepot: shipment.emptyReturnDepotAddressBookId?.toString() || '',
+      emptyReturnDepotId: shipment.emptyReturnDepotAddressBookId?.toString() || '',
+
+      // Container fields
       quantity: shipment.quantity || '',
       containerNumber: '',
       capacity: '',
       tare: '',
 
-      // Date fields must match state definition
-      gsDate: shipment.gsDate ? new Date(shipment.gsDate).toISOString().split('T')[0] : '',
-      sob: shipment.sob ? new Date(shipment.sob).toISOString().split('T')[0] : '',
-      etaTopod: shipment.etaTopod ? new Date(shipment.etaTopod).toISOString().split('T')[0] : '',
-
-      // Depot
-      emptyReturnDepotId: shipment.emptyReturnDepotAddressBookId?.toString() || '',
-      estimateDate: shipment.estimateDate ? new Date(shipment.estimateDate).toISOString().split('T')[0] : '',
+      // Date fields - Form expects these exact field names
+      gateClosingDate: shipment.gsDate ? new Date(shipment.gsDate).toISOString().split('T')[0] : '',
+      sobDate: shipment.sob ? new Date(shipment.sob).toISOString().split('T')[0] : '',
+      etaToPod: shipment.etaTopod ? new Date(shipment.etaTopod).toISOString().split('T')[0] : '',
+      estimatedEmptyReturnDate: shipment.estimateDate ? new Date(shipment.estimateDate).toISOString().split('T')[0] : '',
+      
+      // Additional fields for the useEffect - pass the raw date strings
+      gsDate: shipment.gsDate,
+      sob: shipment.sob,
+      etaTopod: shipment.etaTopod,
+      estimateDate: shipment.estimateDate,
+      
+      // Vessel name
+      vesselName: shipment.vesselName || '',
     });
 
     // Set selected containers
+    const existingContainers = shipment.containers?.map((container: any) => ({
+      containerNumber: container.containerNumber,
+      capacity: container.capacity,
+      tare: container.tare,
+      inventoryId: container.inventoryId,
+      portId: container.portId,
+      depotName: container.depotName || '',
+      port: container.port || null,
+    })) || [];
+
     setSelectedContainers(existingContainers);
 
     setShowModal(true);
@@ -171,7 +230,7 @@ const AllShipmentsPage = () => {
 
   useEffect(() => {
     // Fetch allMovements data from backend (update the URL as needed)
-    axios.get('http://localhost:8000/shipment')
+    axios.get('http://128.199.19.28:8000/shipment')
       .then(res => setAllMovements(res.data))
       .catch(err => console.error('Failed to fetch movements', err));
   }, []);
@@ -210,41 +269,77 @@ const AllShipmentsPage = () => {
               id: undefined,
               status: true,
               quotationRefNo: '',
-              refNumber: '',
+              referenceNumber: '',
               masterBL: '',
               shippingTerm: '',
               date: '',
-              gsDate: '',
-              sob: '',
-              etaTopod: '',
-              estimateDate: '',
-
               jobNumber: '',
 
+              // Customer/Company fields
+              customerName: '',
               customerId: '',
-              shipperId: '',
+              consigneeName: '',
               consigneeId: '',
+              consigneeAddressBookId: '',
+              shipperName: '',
+              shipperId: '',
+              shipperAddressBookId: '',
+              carrierName: '',
               carrierId: '',
+              carrierAddressBookId: '',
+
+              // Product fields
               productId: '',
+              productName: '',
+
+              // Port fields
               portOfLoading: '',
               portOfDischarge: '',
-              transhipmentPortId: '',
-              expHandlingAgentId: '',
-              impHandlingAgentId: '',
-              emptyReturnDepotId: '',
-
+              podPortId: '',
+              polPortId: '',
               enableTranshipmentPort: false,
+              transhipmentPortName: '',
+              transhipmentPortId: '',
 
+              // Agent fields
+              expHandlingAgent: '',
+              expHandlingAgentId: '',
+              expHandlingAgentAddressBookId: '',
+              impHandlingAgent: '',
+              impHandlingAgentId: '',
+              impHandlingAgentAddressBookId: '',
+
+              // Depot fields
+              emptyReturnDepot: '',
+              emptyReturnDepotId: '',
+              emptyReturnDepotAddressBookId: '',
+
+              // Container fields
               quantity: '',
               containerNumber: '',
               capacity: '',
               tare: '',
 
+              // Date fields
+              gateClosingDate: '',
+              sobDate: '',
+              etaToPod: '',
+              estimatedEmptyReturnDate: '',
+              gsDate: '',
+              sob: '',
+              etaTopod: '',
+              estimateDate: '',
+
+              // Free days and detention
               freeDays1: '',
               detentionRate1: '',
               freeDays2: '',
               detentionRate2: '',
+
+              // Vessel
+              vesselName: '',
             });
+            setSelectedContainers([]);
             setShowModal(true);
           }}
           className="bg-blue-600 hover:bg-blue-500 text-white"
@@ -254,16 +349,18 @@ const AllShipmentsPage = () => {
         </Button>
 
         {showModal && (
-         <AddShipmentForm
-  onClose={() => setShowModal(false)}
-  formTitle={formData.id ? 'Edit Shipment' : 'New Shipment Job'}
-  form={formData}
-  setForm={setFormData}
-  refreshShipments={fetchShipments}
-  selectedContainers={selectedContainers}
-  setSelectedContainers={setSelectedContainers}
-/>
-
+          <AddShipmentForm
+            onClose={() => {
+              setShowModal(false);
+              setSelectedContainers([]);
+            }}
+            formTitle={formData.id ? 'Edit Shipment' : 'New Shipment Job'}
+            form={formData}
+            setForm={setFormData}
+            selectedContainers={selectedContainers}
+            setSelectedContainers={setSelectedContainers}
+            refreshShipments={fetchShipments}
+          />
         )}
       </div>
 

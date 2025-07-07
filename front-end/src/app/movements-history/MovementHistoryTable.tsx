@@ -44,7 +44,7 @@ const MovementHistoryTable = () => {
 
 
   useEffect(() => {
-    axios.get("http://localhost:8000/movement-history/latest").then((res) => setData(res.data));
+    axios.get("http://128.199.19.28:8000/movement-history/latest").then((res) => setData(res.data));
   }, []);
 
   const filteredData = data.filter((row) => {
@@ -113,13 +113,13 @@ const MovementHistoryTable = () => {
 
     try {
       // First try shipment
-      const shipmentRes = await axios.get("http://localhost:8000/shipment");
+      const shipmentRes = await axios.get("http://128.199.19.28:8000/shipment");
       const shipment = shipmentRes.data.find((s: any) => s.jobNumber === jobNumberForUpdate);
 
       // If no shipment, try emptyRepoJob
       let emptyRepoJob = null;
       if (!shipment) {
-        const emptyRepoRes = await axios.get("http://localhost:8000/empty-repo-job");
+        const emptyRepoRes = await axios.get("http://128.199.19.28:8000/empty-repo-job");
         emptyRepoJob = emptyRepoRes.data.find((e: any) => e.jobNumber === jobNumberForUpdate);
 
 
@@ -184,12 +184,12 @@ const MovementHistoryTable = () => {
       if (portId !== undefined) payload.portId = portId;
       if (addressBookId !== undefined) payload.addressBookId = addressBookId;
 
-      await axios.post("http://localhost:8000/movement-history/bulk-create", payload);
+      await axios.post("http://128.199.19.28:8000/movement-history/bulk-create", payload);
 
       alert("Status updated.");
       setSelectedIds([]);
       setModalOpen(false);
-      const res = await axios.get("http://localhost:8000/movement-history/latest");
+      const res = await axios.get("http://128.199.19.28:8000/movement-history/latest");
       setData(res.data);
     } catch (err: any) {
       console.error("Update failed:", err?.response || err?.message || err);

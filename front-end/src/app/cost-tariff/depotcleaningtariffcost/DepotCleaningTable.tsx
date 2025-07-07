@@ -48,7 +48,7 @@ const DepotCleaningTable = () => {
 
   const fetchTariffs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/depot-cleaning-tariff-cost");
+      const res = await axios.get("http://128.199.19.28:8000/depot-cleaning-tariff-cost");
       setTariffData(res.data);
     } catch (err) {
       console.error("Error fetching tariff data", err);
@@ -155,7 +155,7 @@ const DepotCleaningTable = () => {
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this tariff?")) {
                           axios
-                            .delete(`http://localhost:8000/depot-cleaning-tariff-cost/${tariff.id}`)
+                            .delete(`http://128.199.19.28:8000/depot-cleaning-tariff-cost/${tariff.id}`)
                             .then(() => fetchTariffs())
                             .catch((err) => console.error("Failed to delete item", err));
                         }

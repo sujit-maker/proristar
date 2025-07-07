@@ -29,7 +29,7 @@ const QuotationPage = () => {
 
   const fetchQuotations = async () => {
     try {
-      const res = await fetch('http://localhost:8000/quotations');
+      const res = await fetch('http://128.199.19.28:8000/quotations');
       const data = await res.json();
       setQuotations(data);
     } catch (error) {
@@ -103,7 +103,7 @@ const QuotationPage = () => {
       leasingCost: quote.leasingCost || '',
       depotCleaningCost: quote.depotCleaningCost || '',
       terminalHandlingFee: quote.terminalHandlingFee || '',
-      containerPreparatioCost: quote.containerPreparationCost || '', // Match name with form inputs
+containerPreparationCost: quote.containerPreparationCost || '',
       
       
       expAgencyCommission: quote.expAgencyCommission || '',
@@ -124,6 +124,8 @@ const QuotationPage = () => {
 
     setShowModal(true);
   };
+
+  
 
   // New function for viewing a quotation
   const handleView = (quote: any) => {
@@ -319,7 +321,7 @@ const QuotationPage = () => {
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this quotation?')) return;
     try {
-      await fetch(`http://localhost:8000/quotations/${id}`, {
+      await fetch(`http://128.199.19.28:8000/quotations/${id}`, {
         method: 'DELETE',
       });
       fetchQuotations();
@@ -727,7 +729,7 @@ const defaultFormData = () => ({
   leasingCost: '',
   depotCleaningCost: '',
   terminalHandlingFee: '',
-  containerPreparation: '',
+  containerPreparationCost: '',
   expAgencyCommission: '',
   impAgencyCommission: '',
   expCollection: '',

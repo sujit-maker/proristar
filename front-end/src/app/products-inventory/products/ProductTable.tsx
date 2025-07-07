@@ -55,7 +55,7 @@ const ProductsInventoryPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://localhost:8000/products");
+        const response = await fetch("http://128.199.19.28:8000/products");
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`Failed to fetch products: ${errorText}`);
@@ -115,7 +115,7 @@ const ProductsInventoryPage = () => {
 
   function handleDelete(id: number): void {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      fetch(`http://localhost:8000/products/${id}`, {
+      fetch(`http://128.199.19.28:8000/products/${id}`, {
         method: "DELETE",
       })
         .then((response) => {
@@ -166,7 +166,7 @@ const ProductsInventoryPage = () => {
             
             try {
               const uploadRes = await axios.post(
-                "http://localhost:8000/product-msds/upload",
+                "http://128.199.19.28:8000/product-msds/upload",
                 fileForm,
                 { headers: { "Content-Type": "multipart/form-data" } }
               );
@@ -207,7 +207,7 @@ const ProductsInventoryPage = () => {
         // Send update
         await axios({
           method: "patch",
-          url: `http://localhost:8000/products/${editData.id}`,
+          url: `http://128.199.19.28:8000/products/${editData.id}`,
           data: updateData,
           headers: { "Content-Type": "application/json" }
         });
@@ -216,7 +216,7 @@ const ProductsInventoryPage = () => {
         setEditingProduct(null);
         
         // Refresh the products list
-        const response = await fetch("http://localhost:8000/products");
+        const response = await fetch("http://128.199.19.28:8000/products");
         if (response.ok) {
           const data = await response.json();
           const mappedData = data.map((product: any) => ({
@@ -231,7 +231,7 @@ const ProductsInventoryPage = () => {
       else {
         // For new product: Create first, then add MSDS records separately
         const productRes = await axios.post(
-          "http://localhost:8000/products",
+          "http://128.199.19.28:8000/products",
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -246,13 +246,13 @@ const ProductsInventoryPage = () => {
             fileForm.append("file", record.certificate);
             
             const uploadRes = await axios.post(
-              "http://localhost:8000/product-msds/upload",
+              "http://128.199.19.28:8000/product-msds/upload",
               fileForm,
               { headers: { "Content-Type": "multipart/form-data" } }
             );
             
             // Then create the MSDS record with the file path returned from upload
-            await axios.post("http://localhost:8000/product-msds", {
+            await axios.post("http://128.199.19.28:8000/product-msds", {
               productId: Number(productId),
               msdcIssueDate: record.issueDate,
               msdsCertificate: uploadRes.data.filename,
@@ -260,7 +260,7 @@ const ProductsInventoryPage = () => {
             });
           } else {
             // If no file, just create the MSDS record
-            await axios.post("http://localhost:8000/product-msds", {
+            await axios.post("http://128.199.19.28:8000/product-msds", {
               productId: Number(productId),
               msdcIssueDate: record.issueDate, 
               msdsCertificate: "",
@@ -392,7 +392,7 @@ const ProductsInventoryPage = () => {
                             href={
                               msds.msdsCertificate.startsWith("http")
                                 ? msds.msdsCertificate
-                                : `http://localhost:8000/uploads/${msds.msdsCertificate}`
+                                : `http://128.199.19.28:8000/uploads/${msds.msdsCertificate}`
                             }
                             target="_blank"
                             rel="noopener noreferrer"

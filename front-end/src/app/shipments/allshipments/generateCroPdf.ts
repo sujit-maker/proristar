@@ -27,10 +27,10 @@ export async function generateCroPdf(
   try {
     const [shipmentRes, addressBooksRes, productsRes, inventoryRes] =
       await Promise.all([
-        axios.get(`http://localhost:8000/shipment/${shipmentId}`),
-        axios.get(`http://localhost:8000/addressbook`),
-        axios.get(`http://localhost:8000/products`),
-        axios.get(`http://localhost:8000/inventory`),
+        axios.get(`http://128.199.19.28:8000/shipment/${shipmentId}`),
+        axios.get(`http://128.199.19.28:8000/addressbook`),
+        axios.get(`http://128.199.19.28:8000/products`),
+        axios.get(`http://128.199.19.28:8000/inventory`),
       ]);
 
     const shipment = shipmentRes.data;

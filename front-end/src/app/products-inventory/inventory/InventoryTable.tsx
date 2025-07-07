@@ -61,7 +61,7 @@ const ProductsInventoryPage = () => {
 
   const fetchInventoryData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/inventory');
+      const response = await axios.get('http://128.199.19.28:8000/inventory');
       setInventoryData(response.data);
       setLoading(false);
     } catch (error) {
@@ -77,7 +77,7 @@ const ProductsInventoryPage = () => {
 
   const handleDelete = async (id: number): Promise<void> => {
     try {
-      await axios.delete(`http://localhost:8000/inventory/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/inventory/${id}`);
       setInventoryData(inventoryData.filter((item) => item.id !== id));
       alert('Inventory deleted successfully');
     } catch (error: any) {
@@ -87,7 +87,7 @@ const ProductsInventoryPage = () => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8000/addressbook")
+    fetch("http://128.199.19.28:8000/addressbook")
       .then((res) => res.json())
       .then((data) => setAddressBook(data))
       .catch((err) => console.error("Failed to fetch address book", err));

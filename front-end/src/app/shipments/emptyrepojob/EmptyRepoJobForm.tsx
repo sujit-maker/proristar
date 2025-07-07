@@ -44,7 +44,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
   useEffect(() => {
     const fetchMovements = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/movement-history");
+        const res = await axios.get("http://128.199.19.28:8000/movement-history");
 
         // Group by containerNumber inside inventory
         const grouped: { [key: string]: any[] } = {};
@@ -191,11 +191,11 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
       if (form.id) {
         // For PATCH (Edit)
-        await axios.patch(`http://localhost:8000/empty-repo-job/${form.id}`, payload);
+        await axios.patch(`http://128.199.19.28:8000/empty-repo-job/${form.id}`, payload);
         alert("Empty repo job updated successfully!");
       } else {
         // For POST (New)
-        await axios.post("http://localhost:8000/empty-repo-job", payload);
+        await axios.post("http://128.199.19.28:8000/empty-repo-job", payload);
         alert("Empty repo job created successfully!");
       }
 
@@ -211,7 +211,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
   const fetchPorts = async (searchTerm: string) => {
     try {
-      const res = await fetch("http://localhost:8000/ports");
+      const res = await fetch("http://128.199.19.28:8000/ports");
       const data = await res.json();
 
       const filtered = data.filter((port: any) =>
@@ -225,7 +225,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
   const fetchExpHandlingAgentsByPort = async (portId: number) => {
     try {
-      const res = await fetch("http://localhost:8000/addressbook");
+      const res = await fetch("http://128.199.19.28:8000/addressbook");
       const data = await res.json();
 
       const filtered = data.filter((entry: any) => {
@@ -256,7 +256,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
   const fetchImpHandlingAgentsByPort = async (portId: number) => {
     try {
-      const res = await fetch("http://localhost:8000/addressbook");
+      const res = await fetch("http://128.199.19.28:8000/addressbook");
       const data = await res.json();
 
       const filtered = data.filter((entry: any) => {
@@ -287,7 +287,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
   const fetchTranshipmentPorts = async (search: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/ports`);
+      const res = await fetch(`http://128.199.19.28:8000/ports`);
       const data = await res.json();
       const filtered = data.filter((p: any) =>
         p.portName.toLowerCase().includes(search.toLowerCase())
@@ -301,7 +301,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
   useEffect(() => {
     const fetchCarrier = async () => {
       try {
-        const res = await fetch("http://localhost:8000/addressbook");
+        const res = await fetch("http://128.199.19.28:8000/addressbook");
         const data = await res.json();
         const carrier = data.filter(
           (entry: any) =>
@@ -319,7 +319,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
 
   const fetchEmptyReturnDepotsByPort = async (portId: number) => {
   try {
-    const res = await fetch("http://localhost:8000/addressbook");
+    const res = await fetch("http://128.199.19.28:8000/addressbook");
     const data = await res.json();
 
     const filtered = data.filter((entry: any) => {
@@ -354,7 +354,7 @@ const AddShipmentModal = ({ onClose, formTitle, form, setForm, refreshShipments,
   useEffect(() => {
     const fetchNextJobNumber = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/empty-repo-job/job/next");
+        const res = await axios.get("http://128.199.19.28:8000/empty-repo-job/job/next");
         setForm((prev: any) => ({
           ...prev,
           jobNumber: res.data.jobNumber || "",

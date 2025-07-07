@@ -41,7 +41,7 @@ const ExchangeRateForm: React.FC<AddExchangeRateFormProps> = ({
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/currency")
+      .get("http://128.199.19.28:8000/currency")
       .then((res) => {
         setCurrencies(res.data);
         // Find Dollar currency ID
@@ -95,11 +95,11 @@ const ExchangeRateForm: React.FC<AddExchangeRateFormProps> = ({
     try {
       if (editData) {
         await axios.patch(
-          `http://localhost:8000/exchange-rates/${editData.id}`,
+          `http://128.199.19.28:8000/exchange-rates/${editData.id}`,
           payload
         );
       } else {
-        await axios.post("http://localhost:8000/exchange-rates", payload);
+        await axios.post("http://128.199.19.28:8000/exchange-rates", payload);
       }
       onClose();
       onSuccess?.();

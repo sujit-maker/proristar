@@ -25,7 +25,7 @@ const MovementHistoryModal: React.FC<Props> = ({ containerNumber, onClose }) => 
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:8000/movement-history`);
+      const res = await axios.get(`http://128.199.19.28:8000/movement-history`);
       const all = res.data || [];
 
       const filtered = all.filter(

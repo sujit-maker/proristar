@@ -69,7 +69,7 @@ const AddressBook = () => {
 
   const fetchCompanies = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/addressbook");
+      const res = await axios.get("http://128.199.19.28:8000/addressbook");
       setCompanies(res.data);
     } catch (err) {
       setError("Error loading address book data");
@@ -83,7 +83,7 @@ const AddressBook = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/addressbook/${id}`, {
+      const res = await fetch(`http://128.199.19.28:8000/addressbook/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete");
@@ -97,7 +97,7 @@ const AddressBook = () => {
 
   const handleEditClick = async (id: number) => {
     try {
-      const res = await axios.get(`http://localhost:8000/addressbook/${id}`);
+      const res = await axios.get(`http://128.199.19.28:8000/addressbook/${id}`);
       setCompanyToEdit(res.data);
       setShowEditModal(true);
     } catch (err) {

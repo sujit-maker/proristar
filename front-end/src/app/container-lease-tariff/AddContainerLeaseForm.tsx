@@ -54,8 +54,8 @@ const AddContainerLeaseForm: React.FC<AddTariffModalProps> = ({ onClose, onSave,
 
     try {
       const url = editData
-        ? `http://localhost:8000/container-lease-tariff/${editData.id}`
-        : 'http://localhost:8000/container-lease-tariff';
+        ? `http://128.199.19.28:8000/container-lease-tariff/${editData.id}`
+        : 'http://128.199.19.28:8000/container-lease-tariff';
 
       const method = editData ? 'PATCH' : 'POST';
 

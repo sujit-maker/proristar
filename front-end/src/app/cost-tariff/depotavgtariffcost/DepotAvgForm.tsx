@@ -39,18 +39,18 @@ const AddTariffModal = ({
 
   // Always fetch dropdown data
   useEffect(() => {
-    axios.get("http://localhost:8000/addressbook").then((res) => {
+    axios.get("http://128.199.19.28:8000/addressbook").then((res) => {
       // Change from exact match to includes match
       const terminals = res.data.filter(
-       (a: any) =>
-        a.businessType &&
-        (a.businessType.includes("Deport Terminal") ||
-         a.businessType.includes("CY Terminal"))
-    );
+        (a: any) =>
+          a.businessType &&
+          (a.businessType.includes("Deport Terminal") ||
+            a.businessType.includes("CY Terminal"))
+      );
       setAddressBookList(terminals);
     });
 
-    axios.get("http://localhost:8000/currency").then((res) => {
+    axios.get("http://128.199.19.28:8000/currency").then((res) => {
       setCurrencyList(res.data);
     });
   }, []);
@@ -59,18 +59,18 @@ const AddTariffModal = ({
   useEffect(() => {
     if (!form?.tariffCode) {
       axios
-        .get("http://localhost:8000/depot-avg-tariff/next-tariff-code")
+        .get("http://128.199.19.28:8000/depot-avg-tariff/next-tariff-code")
         .then((res) => {
           setForm({
             ...form,
-            status: "Active", // Set to Active by default
+            status: "Active",
             tariffCode: res.data.nextTariffCode,
           });
         })
         .catch(() => {
           setForm({
             ...form,
-            status: "Active", // Set to Active by default
+            status: "Active",
             tariffCode: "PENDING-CODE",
           });
         });
@@ -93,10 +93,15 @@ const AddTariffModal = ({
   // Auto calculate total when tariff fields change
   useEffect(() => {
     const total = tariffFields.reduce((sum, field) => {
-      const value = Number(form[field.key]) || 0;
-      return sum + value;
+      const raw = form[field.key];
+      const parsed = raw === "" || raw === undefined ? 0 : Number(raw);
+      return sum + parsed;
     }, 0);
-    setForm((prev: any) => ({ ...prev, total }));
+
+    setForm((prev: any) => ({
+      ...prev,
+      total: total.toFixed(2), // REMOVE THIS — don’t store total in form
+    }));
   }, [
     form.manlidPTFE,
     form.leakTest,
@@ -104,6 +109,7 @@ const AddTariffModal = ({
     form.cleaningSurvey,
     form.maintenanceAndRepair,
   ]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,22 +137,22 @@ const AddTariffModal = ({
         addressBookId: parseInt(form.depotTerminalId),
         portId: parseInt(form.servicePort),
         currencyId: parseInt(form.currency),
-        manlidPTFE: form.manlidPTFE || "0",
-        leakTest: form.leakTest || "0",
-        loadOnLoadOff: form.loadOnLoadOff || "0",
-        cleaningSurvey: form.cleaningSurvey || "0",
-        maintenanceAndRepair: form.maintenanceAndRepair || "0",
-        total: form.total || "0",
+        manlidPTFE: form.manlidPTFE || "",
+        leakTest: form.leakTest || "",
+        loadOnLoadOff: form.loadOnLoadOff || "",
+        cleaningSurvey: form.cleaningSurvey || "",
+        maintenanceAndRepair: form.maintenanceAndRepair || "",
+        total: form.total || "",
       };
 
       if (form?.id) {
         await axios.patch(
-          `http://localhost:8000/depot-avg-tariff/${form.id}`,
+          `http://128.199.19.28:8000/depot-avg-tariff/${form.id}`,
           payload
         );
       } else {
         await axios.post(
-          "http://localhost:8000/depot-avg-tariff",
+          "http://128.199.19.28:8000/depot-avg-tariff",
           payload
         );
       }
@@ -157,6 +163,13 @@ const AddTariffModal = ({
       alert("Error submitting form");
     }
   };
+
+  const computedTotal = tariffFields.reduce((sum, field) => {
+    const raw = form[field.key];
+    const parsed = raw === "" || raw === undefined ? 0 : Number(raw);
+    return sum + parsed;
+  }, 0).toFixed(2);
+
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -209,29 +222,28 @@ const AddTariffModal = ({
             </p>
           </div>
 
-         <div className="grid grid-cols-1 gap-y-4">
-  <div>
-    <Label className="block text-xs text-white mb-1">Depot Terminal Name</Label>
-    <select
-      value={form.depotTerminalId || ""}
-      onChange={(e) =>
-        setForm({
-          ...form,
-          depotTerminalId: e.target.value,
-          servicePort: "",
-        })
-      }
-      className="w-full p-2 bg-neutral-800 text-white rounded border border-neutral-700 text-sm"
-    >
-      <option value="">Select</option>
-      {addressBookList.map((d: any) => (
-        <option key={d.id} value={d.id}>
-          {d.companyName} - {d.businessType}
-        </option>
-      ))}
-    </select>
-  </div>
-
+          <div className="grid grid-cols-1 gap-y-4">
+            <div>
+              <Label className="block text-xs text-white mb-1">Depot Terminal Name</Label>
+              <select
+                value={form.depotTerminalId || ""}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    depotTerminalId: e.target.value,
+                    servicePort: "",
+                  })
+                }
+                className="w-full p-2 bg-neutral-800 text-white rounded border border-neutral-700 text-sm"
+              >
+                <option value="">Select</option>
+                {addressBookList.map((d: any) => (
+                  <option key={d.id} value={d.id}>
+                    {d.companyName} - {d.businessType}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div>
               <Label className="block text-xs text-white mb-1">Service Port</Label>
@@ -282,10 +294,11 @@ const AddTariffModal = ({
                   <Label className="text-white text-xs">{label}</Label>
                   <Input
                     type="text"
-                    value={form[key] || ""}
+                    value={form[key] ?? ""}
                     onChange={(e) =>
-                      setForm({ ...form, [key]: Number(e.target.value) })
+                      setForm({ ...form, [key]: e.target.value })
                     }
+
                     className="w-full bg-neutral-800 text-white rounded border border-neutral-700"
                   />
                 </div>
@@ -296,7 +309,7 @@ const AddTariffModal = ({
               <Label className="text-white w-[200px] ml-5 text-xs">Total</Label>
               <Input
                 type="text"
-                value={form.total || 0}
+                value={computedTotal}
                 readOnly
                 className="w-full bg-neutral-800 text-white rounded border border-neutral-700"
               />

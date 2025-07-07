@@ -55,14 +55,14 @@ const AddPortForm: React.FC<PortFormProps> = ({ onClose, editData, isEditMode })
   const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/country")
+    axios.get("http://128.199.19.28:8000/country")
       .then((res) => setCountries(res.data))
       .catch((err) => console.error("Failed to fetch countries:", err));
   }, []);
 
   useEffect(() => {
     if (formData.portType === "ICD") {
-      axios.get("http://localhost:8000/ports")
+      axios.get("http://128.199.19.28:8000/ports")
         .then((res) => {
           const mainPorts = res.data.filter((port: any) => port.portType === "Main");
           setParentPorts(mainPorts);
@@ -133,9 +133,9 @@ const AddPortForm: React.FC<PortFormProps> = ({ onClose, editData, isEditMode })
 
     try {
       if (isEditMode && editData?.id) {
-        await axios.patch(`http://localhost:8000/ports/${editData.id}`, portData);
+        await axios.patch(`http://128.199.19.28:8000/ports/${editData.id}`, portData);
       } else {
-        await axios.post("http://localhost:8000/ports", portData);
+        await axios.post("http://128.199.19.28:8000/ports", portData);
       }
       onClose();
     } catch (error: any) {

@@ -47,7 +47,7 @@ const ExchangeRateTable = () => {
 
   const fetchExchangeRates = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/exchange-rates");
+      const res = await axios.get("http://128.199.19.28:8000/exchange-rates");
       setExchangeRates(res.data);
     } catch (err) {
       console.error("Failed to fetch exchange rates", err);
@@ -72,7 +72,7 @@ const ExchangeRateTable = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this exchange rate?")) return;
     try {
-      await axios.delete(`http://localhost:8000/exchange-rates/${id}`);
+      await axios.delete(`http://128.199.19.28:8000/exchange-rates/${id}`);
       fetchExchangeRates();
     } catch (err) {
       console.error("Failed to delete exchange rate:", err);

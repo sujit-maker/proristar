@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,7 +55,7 @@ const AddShipmentModal = ({
   useEffect(() => {
     const fetchMovements = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/movement-history");
+        const res = await axios.get("http://128.199.19.28:8000/movement-history");
 
         // Group by containerNumber inside inventory
         const grouped: { [key: string]: any[] } = {};
@@ -191,7 +190,7 @@ useEffect(() => {
       if (!form.id) return;
 
       try {
-        const res = await axios.get(`http://localhost:8000/shipment/${form.id}`);
+        const res = await axios.get(`http://128.199.19.28:8000/shipment/${form.id}`);
         const data = res.data;
 
         console.log("🚀 Editing shipment:", data);
@@ -302,11 +301,11 @@ useEffect(() => {
       }
       if (form.id) {
         // For PATCH (Edit)
-        await axios.patch(`http://localhost:8000/shipment/${form.id}`, payload);
+        await axios.patch(`http://128.199.19.28:8000/shipment/${form.id}`, payload);
         alert("Shipment updated successfully!");
       } else {
         // For POST (New)
-        await axios.post("http://localhost:8000/shipment", payload);
+        await axios.post("http://128.199.19.28:8000/shipment", payload);
         alert("Shipment created successfully!");
       }
 
@@ -323,7 +322,7 @@ useEffect(() => {
     if (!form.quotationRefNo) return;
     try {
       const res = await axios.get(
-        `http://localhost:8000/shipment/quotation/${encodeURIComponent(
+        `http://128.199.19.28:8000/shipment/quotation/${encodeURIComponent(
           form.quotationRefNo
         )}`
       );
@@ -372,7 +371,7 @@ useEffect(() => {
 
       // Helper to fetch name if agent relation is missing
       const fetchAgentNameById = async (id: number) => {
-        const res = await axios.get(`http://localhost:8000/addressbook/${id}`);
+        const res = await axios.get(`http://128.199.19.28:8000/addressbook/${id}`);
         return res.data.companyName;
       };
 
@@ -460,12 +459,10 @@ useEffect(() => {
   };
 
 
-  
-
   useEffect(() => {
     const fetchNextJobNumber = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/shipment/next-job-number");
+        const res = await axios.get("http://128.199.19.28:8000/shipment/next-job-number");
         setForm((prev: any) => ({
           ...prev,
           jobNumber: res.data.jobNumber || "",
@@ -484,7 +481,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchConsignee: () => Promise<void> = async () => {
       try {
-        const res = await fetch("http://localhost:8000/addressbook");
+        const res = await fetch("http://128.199.19.28:8000/addressbook");
         const data = await res.json();
         const consignee = data.filter(
           (entry: any) =>
@@ -504,7 +501,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchShipper: () => Promise<void> = async () => {
       try {
-        const res = await fetch("http://localhost:8000/addressbook");
+        const res = await fetch("http://128.199.19.28:8000/addressbook");
         const data = await res.json();
         const shipper = data.filter(
           (entry: any) =>
@@ -525,7 +522,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchCarrier: () => Promise<void> = async () => {
       try {
-        const res = await fetch("http://localhost:8000/addressbook");
+        const res = await fetch("http://128.199.19.28:8000/addressbook");
         const data = await res.json();
         const carrier = data.filter(
           (entry: any) =>
@@ -562,7 +559,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const res = await fetch("http://localhost:8000/inventory");
+        const res = await fetch("http://128.199.19.28:8000/inventory");
         const data = await res.json();
         setAllInventories(data);
       } catch (error) {
@@ -572,13 +569,12 @@ useEffect(() => {
 
     fetchInventory();
   }, []);
+
   const getContainerSize = (inventoryId: number) => {
     const inv = allInventories.find((i) => i.id === inventoryId);
     return inv?.containerSize || "N/A";
   };
 
-
-  // --- UI Starts Here - Updated with AddProductForm styling ---
   return (
     <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 backdrop-blur-lg">
       <Dialog open onOpenChange={onClose}>

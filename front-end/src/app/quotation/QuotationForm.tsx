@@ -23,7 +23,7 @@ const AddQuotationModal = ({
   const [transhipmentPortSuggestions, setTranshipmentPortSuggestions] = useState<any[]>([]);
   const [showTranshipmentDropdown, setShowTranshipmentDropdown] = useState(false);
   const [trsHandlingAgents, setTrsHandlingAgents] = useState<any[]>([]);
-
+const [productList, setProductList] = useState<any[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,13 +88,13 @@ const AddQuotationModal = ({
         : null,
       slotRate: ensureString(form.slotRate),
       depotAvgCost: ensureString(form.depotAvgCost),
-      leasingCost: form.leasingCost,
-      depotCleaningCost: ensureString(form.depotCleaningCost),
+      leasingCost: form.leasingCost ?? "",
+      depotCleaningCost: ensureString(form.depotCleaningCost) ?? "",
       terminalHandlingFee: ensureString(form.terminalHandlingFee),
-      containerPreparationCost: form.containerPreparationCost,
+  containerPreparationCost: form.containerPreparationCost || "",
       expAgencyCommission: ensureString(form.expAgencyCommission),
       impAgencyCommission: ensureString(form.impAgencyCommission),
-      expCollectionCharges: ensureString(form.expCollection),
+      expCollectionCharges: ensureString(form.expCollection) ?? "",
       impCollectionCharges: ensureString(form.impCollection),
       totalCost: ensureString(form.totalCost),
       sellingAmount: ensureString(form.sellingAmount),
@@ -106,8 +106,8 @@ const AddQuotationModal = ({
     try {
       const method = form.id ? "PATCH" : "POST";
       const url = form.id
-        ? `http://localhost:8000/quotations/${form.id}`
-        : "http://localhost:8000/quotations";
+        ? `http://128.199.19.28:8000/quotations/${form.id}`
+        : "http://128.199.19.28:8000/quotations";
 
       const res = await fetch(url, {
         method,
@@ -130,7 +130,7 @@ const AddQuotationModal = ({
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await fetch("http://localhost:8000/addressbook");
+        const res = await fetch("http://128.199.19.28:8000/addressbook");
         const data = await res.json();
         const customers = data.filter(
           (entry: any) =>
@@ -164,7 +164,7 @@ const AddQuotationModal = ({
     const fetchNextRef = async () => {
       try {
         if (!form.quotationRef) {
-          const res = await fetch("http://localhost:8000/quotations/next-ref");
+          const res = await fetch("http://128.199.19.28:8000/quotations/next-ref");
           const data = await res.json();
           setForm((prev: any) => ({
             ...prev,
@@ -179,10 +179,9 @@ const AddQuotationModal = ({
     fetchNextRef();
   }, []);
 
-
   const fetchProducts = async (searchTerm: string) => {
     try {
-      const res = await fetch("http://localhost:8000/products");
+      const res = await fetch("http://128.199.19.28:8000/products");
       const data = await res.json();
 
       const filtered = data.filter((product: any) =>
@@ -196,7 +195,7 @@ const AddQuotationModal = ({
 
   const fetchPorts = async (searchTerm: string) => {
     try {
-      const res = await fetch("http://localhost:8000/ports");
+      const res = await fetch("http://128.199.19.28:8000/ports");
       const data = await res.json();
 
       const filtered = data.filter((port: any) =>
@@ -210,9 +209,8 @@ const AddQuotationModal = ({
 
 const fetchExpDepotsByPort = async (portId: number) => {
   try {
-    const res = await fetch("http://localhost:8000/addressbook");
+    const res = await fetch("http://128.199.19.28:8000/addressbook");
     const data = await res.json();
-    console.log("Fetched AddressBook:", data);
 
     const filtered = data.filter((entry: any) => {
       const businessType = (entry.businessType || "").toLowerCase();
@@ -228,7 +226,6 @@ const fetchExpDepotsByPort = async (portId: number) => {
       return isDepotOrCY && linkedToPort;
     });
 
-    console.log("Filtered Exp Depots:", filtered);
     setExpDepots(filtered);
   } catch (err) {
     console.error("Failed to fetch Exp. Depots:", err);
@@ -245,9 +242,8 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
   const fetchEmptyReturnDepotsByPort = async (portId: number) => {
   try {
-    const res = await fetch("http://localhost:8000/addressbook");
+    const res = await fetch("http://128.199.19.28:8000/addressbook");
     const data = await res.json();
-    console.log("Fetched address book data:", data); // ✅ check actual data
 
     const filtered = data.filter((entry: any) => {
       const businessType = (entry.businessType || "").toLowerCase();
@@ -261,7 +257,6 @@ const fetchExpDepotsByPort = async (portId: number) => {
       return isDepotOrCY && linkedToPort;
     });
 
-    console.log("Filtered Depots:", filtered); // ✅ check final result
     setEmptyReturnDepots(filtered);
   } catch (err) {
     console.error("Failed to fetch empty return depots:", err);
@@ -281,7 +276,7 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
   const fetchExpHandlingAgentsByPort = async (portId: number) => {
     try {
-      const res = await fetch("http://localhost:8000/addressbook");
+      const res = await fetch("http://128.199.19.28:8000/addressbook");
       const data = await res.json();
 
       const filtered = data.filter((entry: any) => {
@@ -312,7 +307,7 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
   const fetchImpHandlingAgentsByPort = async (portId: number) => {
     try {
-      const res = await fetch("http://localhost:8000/addressbook");
+      const res = await fetch("http://128.199.19.28:8000/addressbook");
       const data = await res.json();
 
       const filtered = data.filter((entry: any) => {
@@ -342,7 +337,7 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
   const fetchTranshipmentPorts = async (search: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/ports`);
+      const res = await fetch(`http://128.199.19.28:8000/ports`);
       const data = await res.json();
       const filtered = data.filter((p: any) =>
         p.portName.toLowerCase().includes(search.toLowerCase())
@@ -354,7 +349,7 @@ const fetchExpDepotsByPort = async (portId: number) => {
   };
   const fetchTrsHandlingAgents = async (portId: number) => {
     try {
-      const res = await fetch("http://localhost:8000/addressbook");
+      const res = await fetch("http://128.199.19.28:8000/addressbook");
       const data = await res.json();
       const filtered = data.filter((entry: any) => {
         const isHandlingAgent = entry.businessType
@@ -383,7 +378,7 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
   const calculateLeasingCost = async (product: any) => {
     try {
-      const res = await fetch("http://localhost:8000/container-lease-tariff");
+      const res = await fetch("http://128.199.19.28:8000/container-lease-tariff");
       const data = await res.json();
 
       const matchedTariff = data.find((t: any) =>
@@ -505,8 +500,8 @@ const fetchExpDepotsByPort = async (portId: number) => {
 
     try {
       const [res, exchangeRes] = await Promise.all([
-        fetch("http://localhost:8000/depot-cleaning-tariff-cost"),
-        fetch("http://localhost:8000/exchange-rates"),
+        fetch("http://128.199.19.28:8000/depot-cleaning-tariff-cost"),
+        fetch("http://128.199.19.28:8000/exchange-rates"),
       ]);
 
       const [data, exchangeRateData] = await Promise.all([
@@ -562,9 +557,9 @@ useEffect(() => {
   const fetchDepotAvgTariff = async () => {
     try {
       const [tariffRes, currencyRes, exchangeRateRes] = await Promise.all([
-        fetch("http://localhost:8000/depot-avg-tariff"),
-        fetch("http://localhost:8000/currency"),
-        fetch("http://localhost:8000/exchange-rates"),
+        fetch("http://128.199.19.28:8000/depot-avg-tariff"),
+        fetch("http://128.199.19.28:8000/currency"),
+        fetch("http://128.199.19.28:8000/exchange-rates"),
       ]);
 
       const [tariffData, currencyData, exchangeRateData] = await Promise.all([
@@ -629,7 +624,7 @@ useEffect(() => {
     if (form.isEditing) {
       // Load customer suggestions
       if (form.customerId) {
-        fetch("http://localhost:8000/addressbook")
+        fetch("http://128.199.19.28:8000/addressbook")
           .then(res => res.json())
           .then(data => {
             const customers = data.filter(
@@ -685,8 +680,8 @@ useEffect(() => {
 
     try {
       const [res, exchangeRes] = await Promise.all([
-        fetch("http://localhost:8000/handling-agent-tariff-cost"),
-        fetch("http://localhost:8000/exchange-rates"),
+        fetch("http://128.199.19.28:8000/handling-agent-tariff-cost"),
+        fetch("http://128.199.19.28:8000/exchange-rates"),
       ]);
 
       const [data, exchangeRateData] = await Promise.all([
@@ -752,8 +747,8 @@ useEffect(() => {
 
     try {
       const [res, exchangeRes] = await Promise.all([
-        fetch("http://localhost:8000/handling-agent-tariff-cost"),
-        fetch("http://localhost:8000/exchange-rates"),
+        fetch("http://128.199.19.28:8000/handling-agent-tariff-cost"),
+        fetch("http://128.199.19.28:8000/exchange-rates"),
       ]);
 
       const [data, exchangeRateData] = await Promise.all([
@@ -802,6 +797,42 @@ useEffect(() => {
 
   fetchImpAgencyCommission();
 }, [form.portOfDischargeId, form.impHAgentId]);
+
+
+
+useEffect(() => {
+  // Fetch all products once for use in leasing calculation
+  const fetchAllProducts = async () => {
+    try {
+      const res = await fetch("http://128.199.19.28:8000/products");
+      const data = await res.json();
+      setProductList(data);
+    } catch (error) {
+      console.error("Failed to fetch product list:", error);
+      setProductList([]);
+    }
+  };
+  fetchAllProducts();
+}, []);
+
+useEffect(() => {
+  if (
+    form.isEditing &&
+    form.productId &&
+    form.expFreeDays !== undefined &&
+    form.impFreeDays !== undefined &&
+    form.transitDays !== undefined &&
+    productList.length > 0
+  ) {
+    const product = productList.find(p => p.id === Number(form.productId));
+    if (product) {
+      calculateLeasingCost(product);
+    } else {
+      console.warn("Product not found for leasing calculation.");
+    }
+  }
+}, [form.isEditing, form.productId, form.expFreeDays, form.impFreeDays, form.transitDays, productList]);
+
 
 
   return (
@@ -1065,7 +1096,7 @@ useEffect(() => {
         setShowProductDropdown(false);
 
         try {
-          const res = await fetch("http://localhost:8000/container-lease-tariff");
+          const res = await fetch("http://128.199.19.28:8000/container-lease-tariff");
           const leaseTariffs = await res.json();
 
           const matchedLease = leaseTariffs.find(

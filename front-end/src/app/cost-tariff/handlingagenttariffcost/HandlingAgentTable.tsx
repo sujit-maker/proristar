@@ -51,7 +51,7 @@ const CostTariffPage = () => {
 
   const fetchTariffData = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/handling-agent-tariff-cost");
+      const response = await axios.get("http://128.199.19.28:8000/handling-agent-tariff-cost");
       setTariffData(response.data);
     } catch (error) {
       console.error("Failed to fetch tariff data", error);
@@ -65,7 +65,7 @@ const CostTariffPage = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       try {
-        await axios.delete(`http://localhost:8000/handling-agent-tariff-cost/${id}`);
+        await axios.delete(`http://128.199.19.28:8000/handling-agent-tariff-cost/${id}`);
         fetchTariffData();
       } catch (err) {
         console.error("Delete failed:", err);

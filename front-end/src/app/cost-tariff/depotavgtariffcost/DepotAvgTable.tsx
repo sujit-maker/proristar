@@ -52,7 +52,7 @@ const DepotAvgCost = () => {
 
   const fetchTariffs = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/depot-avg-tariff");
+      const res = await axios.get("http://128.199.19.28:8000/depot-avg-tariff");
       setTariffs(res.data);
     } catch (err) {
       console.error("Failed to fetch tariffs:", err);
@@ -66,7 +66,7 @@ const DepotAvgCost = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       try {
-        await axios.delete(`http://localhost:8000/depot-avg-tariff/${id}`);
+        await axios.delete(`http://128.199.19.28:8000/depot-avg-tariff/${id}`);
         fetchTariffs();
       } catch (err) {
         console.error("Delete failed:", err);
